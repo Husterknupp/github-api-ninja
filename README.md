@@ -5,6 +5,8 @@ GitHub API client with some statistics on public repositories. Show language sta
 repositories on GitHub, in the form `Java: 37,3817 %`. Currently I only respect the first five because of DOS 
 prevention on GitHub site. Statistics are printed out on `System.out`.
 
+Run via `mvn -Dtest=IntegrationTest test`
+
 **Extensions**
 
 - Provide way to log in via the GitHub API, i.e., receive more than 5 repo statistics.
