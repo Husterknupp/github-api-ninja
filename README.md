@@ -17,8 +17,9 @@ beautifully nice way.
  unit.
 - Make a standalone webserver application. Use Spring Boot, for instance. 
 
-**Frontend Stuff**
+**More new stuff**
 
 - nice html-templates: http://ink.sapo.pt/, http://purecss.io/
 - learn jquery: https://www.codeschool.com/courses/try-jquery
 - tryout purecss with jquery for example on any public api: [http://plnkr.co/](http://plnkr.co/edit/owTWPHW3xZDE8vnHn7ra?p=catalogue)
+- platform as a service: https://www.heroku.com/home
