@@ -12,4 +12,9 @@ public class GithubApiTest {
         assertThat(gitHub.getPublicRepositories()).isNotEmpty();
     }
 
+    @Test
+    public void testGetBytesPerLanguage() {
+        // TODO test method probably with mock
+    }
+
 }
