@@ -9,7 +9,8 @@ Run via `mvn -Dtest=IntegrationTest test`
 
 **Extensions**
 
-- Provide way to log in via the GitHub API, i.e., receive more than 5 repo statistics.
+- Provide way to log in via the GitHub API, i.e., receive more than 5 repo statistics. 
+See developer.github.com/v3/oauth_authorizations
 - Build a RESTful HTTP interface on top. E.g., `GET /statistics`, `GET /statistics/language`, ... seem reasonable.
 - On top of that a simple and focused GUI/Frontend would be cool. Enter a language name and receive the result in a 
 beautifully nice way. 
