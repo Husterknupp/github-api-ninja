@@ -1,6 +1,5 @@
 package de.bschandera;
 
-import com.google.common.primitives.UnsignedInteger;
 import org.junit.Test;
 
 import java.math.BigDecimal;
@@ -13,7 +12,7 @@ public class IntegrationTest {
     public void run() {
         Map<String, BigDecimal> bytesPerLanguage = new HashMap<>();
 
-        GithubApi api = new GithubApi(UnsignedInteger.valueOf(5l));
+        GithubApi api = new GithubApi(5);
         for (Repository repository : api.getPublicRepositories()) {
             for (Language language : repository.getLanguages()) {
                 bytesPerLanguage.put(language.getName(), BigDecimal.ZERO);

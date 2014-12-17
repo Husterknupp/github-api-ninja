@@ -1,5 +1,7 @@
 package de.bschandera;
 
+import net.sf.qualitycheck.Check;
+
 import java.math.BigDecimal;
 
 public class Language {
@@ -8,6 +10,8 @@ public class Language {
     private final BigDecimal bytes;
 
     public Language(String name, BigDecimal bytes) {
+        Check.notNull(name, "name");
+        Check.notNegative(bytes.longValue(), "bytes");
         this.name = name;
         this.bytes = bytes;
     }

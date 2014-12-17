@@ -1,6 +1,7 @@
 package de.bschandera;
 
 import com.google.common.collect.Lists;
+import net.sf.qualitycheck.Check;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +12,8 @@ public class Repository {
     private final String id;
 
     public Repository(String id, List<Language> languages) {
+        Check.notNull(id, "id");
+        Check.noNullElements(languages, "languages");
         this.id = id;
         this.languages = new ArrayList<>();
         for (Language language : languages) {

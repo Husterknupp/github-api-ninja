@@ -23,11 +23,11 @@ public class GithubApi {
     private static final JsonParser PARSER = new JsonParser();
     private static final CloseableHttpClient HTTP_CLIENT = HttpClientBuilder.create().build();
 
-    private final UnsignedInteger repoLimit;
+    private final int repoLimit;
     private final List<Repository> repositories;
 
-    public GithubApi(UnsignedInteger repoLimit) {
-        Check.notNull(repoLimit, "repoLimit");
+    public GithubApi(Integer repoLimit) {
+        Check.notNegative(repoLimit, "repoLimit");
         this.repoLimit = repoLimit;
         repositories = new ArrayList<>();
     }
@@ -41,7 +41,7 @@ public class GithubApi {
 
         if (apiCallsAreLimited()) {
             System.out.println("Api calls are limited to " + repoLimit + ".");
-            int callsLeft = repoLimit.intValue();
+            int callsLeft = repoLimit;
             for (JsonElement repoAsJson : repos) {
                 if (callsLeft > 0) {
                     callsLeft--;
@@ -63,7 +63,7 @@ public class GithubApi {
     }
 
     private boolean apiCallsAreLimited() {
-        return repoLimit.compareTo(UnsignedInteger.ONE) != 0;
+        return repoLimit != 0;
     }
 
     private static JsonElement getResponseAsJson(String uri) {
