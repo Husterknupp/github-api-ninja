@@ -10,7 +10,7 @@ public class Language {
     private final BigDecimal bytes;
 
     public Language(String name, BigDecimal bytes) {
-        Check.notNull(name, "name");
+        Check.notEmpty(name, "name");
         Check.notNegative(bytes.longValue(), "bytes");
         this.name = name;
         this.bytes = bytes;
@@ -27,5 +27,29 @@ public class Language {
      */
     public BigDecimal getBytes() {
         return bytes;
+    }
+
+    /**
+     * @param o given object to compare this to.
+     * @return If and only if this.name and this.bytes equal the given ones.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Language language = (Language) o;
+
+        if (!bytes.equals(language.bytes)) return false;
+        if (!name.equals(language.name)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name.hashCode();
+        result = 31 * result + bytes.hashCode();
+        return result;
     }
 }

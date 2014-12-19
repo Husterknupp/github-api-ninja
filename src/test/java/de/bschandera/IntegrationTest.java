@@ -3,24 +3,26 @@ package de.bschandera;
 import org.junit.Test;
 
 import java.math.BigDecimal;
-import java.util.Map;
+import java.util.List;
 
 public class IntegrationTest {
 
+    private static final BigDecimal _100 = BigDecimal.valueOf(100l);
+
     @Test
     public void run() {
-        Map<Language, BigDecimal> bytesPerLanguage = new GithubApi(5).getBytesPerLanguage();
+        List<Language> languages = new GitHubApi(5).getBytesPerLanguage();
 
         BigDecimal bytesTotal = BigDecimal.ZERO;
-        for (BigDecimal bytes : bytesPerLanguage.values()) {
-            bytesTotal = bytesTotal.add(bytes);
+        for (Language language : languages) {
+            bytesTotal = bytesTotal.add(language.getBytes());
         }
         System.out.println("bytesTotal: " + bytesTotal);
 
         StringBuilder result = new StringBuilder();
-        for (Language language : bytesPerLanguage.keySet()) {
-            final BigDecimal percentage = asPercentage(bytesPerLanguage.get(language), bytesTotal);
-            result.append(language).append(": ").append(percentage.multiply(BigDecimal.valueOf(100l))).append(" %\n");
+        for (Language language : languages) {
+            final BigDecimal percentage = asPercentage(language.getBytes(), bytesTotal);
+            result.append(language.getName()).append(": ").append(percentage.multiply(_100)).append(" %\n");
         }
 
         System.out.println(result);
