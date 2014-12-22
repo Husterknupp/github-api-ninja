@@ -4,21 +4,36 @@ import com.google.common.collect.Lists;
 import net.sf.qualitycheck.Check;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class Repository {
 
-    private List<Language> languages;
     private final String id;
+    private String languageURL;
+    private List<Language> languages;
 
-    public Repository(String id, List<Language> languages) {
+    public Repository(String id, String languageURL) {
+        this(id, languageURL, Collections.<Language>emptyList());
+    }
+
+    public Repository(String id, Collection<Language> languages) {
+        this(id, "{repoName}/languages", languages);
+    }
+
+    public Repository(String id, String languageURL, Collection<Language> languages) {
         Check.notNull(id, "id");
-        Check.noNullElements(languages, "languages");
+        Check.notEmpty(languageURL, "languageURL");
+
         this.id = id;
-        this.languages = new ArrayList<>();
-        for (Language language : languages) {
-            this.languages.add(language);
-        }
+        this.languageURL = languageURL;
+        this.languages = new ArrayList<>(languages);
+    }
+
+    public void setLanguages(Collection<Language> languages) {
+        Check.noNullElements(languages);
+        this.languages = new ArrayList<>(languages);
     }
 
     public List<Language> getLanguages() {
@@ -27,5 +42,9 @@ public class Repository {
 
     public String getId() {
         return id;
+    }
+
+    public String getLanguageURL() {
+        return languageURL;
     }
 }

@@ -17,8 +17,14 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
+/**
+ * Provide a convenient way to handle the public GitHub REST API v3. Hide away HTTP calls and also the necessary JSON
+ * handling. Make data accessible within good looking Java types instead.
+ */
 public class GitHubApi {
     private static final JsonParser PARSER = new JsonParser();
+    private static final String API_GITHUB_COM = "https://api.github.com";
+    private static final String REPOSITORIES = "/repositories";
 
     private final CloseableHttpClient httpClient;
     private final int repoLimit;
@@ -44,31 +50,44 @@ public class GitHubApi {
     public List<Repository> getPublicRepositories() {
         if (!repositories.isEmpty()) {
             return Lists.newArrayList(repositories);
-        }
-
-        final JsonArray repos = getResponseAsJson("https://api.github.com/repositories").getAsJsonArray();
-
-        if (apiCallsAreLimited()) {
-            System.out.println("Api calls are limited to " + repoLimit + ".");
-            int callsLeft = repoLimit;
-            for (JsonElement repoAsJson : repos) {
-                if (callsLeft > 0) {
-                    callsLeft--;
-                    final Repository repo = new Repository(extractId(repoAsJson), extractLanguages(repoAsJson));
-                    System.out.println("Found repo: " + repo.getId() + ", " + repo.getLanguages());
-                    repositories.add(repo);
-                }
-            }
         } else {
-            System.out.println("Api calls are NOT limited.");
-            for (JsonElement repoAsJson : repos) {
-                final Repository repo = new Repository(extractId(repoAsJson), extractLanguages(repoAsJson));
-                System.out.println("Found repo: " + repo.getId() + ", " + repo.getLanguages());
-                repositories.add(repo);
+            List<Repository> reposWithoutLanguages = getRepositories(getResponseAsJson(API_GITHUB_COM + REPOSITORIES).getAsJsonArray());
+            List<Repository> result = new ArrayList<>();
+            for (Repository repo : reposWithoutLanguages) {
+                repo.setLanguages(getLanguages(getResponseAsJson(repo.getLanguageURL()).getAsJsonObject()));
+                result.add(repo);
             }
+            return result;
         }
+    }
 
-        return Lists.newArrayList(repositories);
+    /**
+     * {@linkplain de.bschandera.Repository}s that only have their name and their language id. No languages are contended, yet.
+     * Please use {@linkplain #getLanguages(com.google.gson.JsonObject)} for this task.
+     *
+     * @param gitHubPayload
+     * @return
+     */
+    public List<Repository> getRepositories(JsonArray gitHubPayload) {
+        final List<Repository> reposWithoutLanguages = getReposWithoutLanguages(gitHubPayload.getAsJsonArray());
+        List<Repository> result = new ArrayList<>();
+        for (Repository repo : reposWithoutLanguages) {
+            repo.setLanguages(Arrays.asList(new Language("Scala-Unlimited", BigDecimal.valueOf(42))));
+            result.add(repo);
+        }
+        return Lists.newArrayList(result);
+    }
+
+    private static List<Repository> getReposWithoutLanguages(JsonArray allReposPayload) {
+        List<Repository> result = new ArrayList<>();
+        for (JsonElement repo : allReposPayload.getAsJsonArray()) {
+            result.add(new Repository(extractId(repo), extractLanguageURL(repo)));
+        }
+        return result;
+    }
+
+    private boolean apiCallsAreLimited() {
+        return repoLimit != 0;
     }
 
     private JsonElement getResponseAsJson(String uri) {
@@ -93,10 +112,6 @@ public class GitHubApi {
         return PARSER.parse(jsonFromGitHub);
     }
 
-    private boolean apiCallsAreLimited() {
-        return repoLimit != 0;
-    }
-
     /**
      * Extract id of a specific repo.
      *
@@ -105,6 +120,10 @@ public class GitHubApi {
      */
     private static String extractId(JsonElement repoAsJson) {
         return repoAsJson.getAsJsonObject().getAsJsonPrimitive("id").getAsString();
+    }
+
+    private static String extractLanguageURL(JsonElement repoAsJson) {
+        return repoAsJson.getAsJsonObject().getAsJsonPrimitive("languages_url").getAsString();
     }
 
     private List<Language> extractLanguages(JsonElement repoAsJson) {
@@ -119,10 +138,12 @@ public class GitHubApi {
      */
     private static List<Language> extractLanguages(JsonElement repoAsJson, HttpClient httpClient) {
         String languagesUrl = repoAsJson.getAsJsonObject().getAsJsonPrimitive("languages_url").getAsString();
-        JsonObject languagesAsJson = getResponseAsJson(languagesUrl, httpClient).getAsJsonObject();
+        return getLanguages(getResponseAsJson(languagesUrl, httpClient).getAsJsonObject());
+    }
 
+    public static List<Language> getLanguages(JsonObject languagesPayload) {
         List<Language> result = new ArrayList<>();
-        for (Map.Entry<String, JsonElement> languageOccurrence : languagesAsJson.entrySet()) {
+        for (Map.Entry<String, JsonElement> languageOccurrence : languagesPayload.entrySet()) {
             final String name = languageOccurrence.getKey();
             final BigDecimal bytes = BigDecimal.valueOf(languageOccurrence.getValue().getAsLong());
             result.add(new Language(name, bytes));
@@ -136,7 +157,7 @@ public class GitHubApi {
      *
      * @return
      */
-    public List<Language> getBytesPerLanguage() {
+    public List<Language> aggregateLanguagesOfRepos() {
         return aggregateLanguagesOfRepos(repositories);
     }
 

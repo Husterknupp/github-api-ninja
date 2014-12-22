@@ -11,7 +11,7 @@ public class IntegrationTest {
 
     @Test
     public void run() {
-        List<Language> languages = new GitHubApi(5).getBytesPerLanguage();
+        List<Language> languages = new GitHubApi(5).aggregateLanguagesOfRepos();
 
         BigDecimal bytesTotal = BigDecimal.ZERO;
         for (Language language : languages) {
