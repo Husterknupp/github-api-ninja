@@ -26,7 +26,7 @@ public class GitHubApiTest {
         JsonArray repoPayload = new JsonParser().parse(repoPayload_firstTwoRepos()).getAsJsonArray();
         List<Repository> repositories = gitHub.getRepositories(repoPayload);
 
-        assertThat(repositories).hasSize(10);
+        assertThat(repositories).hasSize(2);
         assertThat(repositories.get(0).getId()).isEqualTo("1");
         assertThat(repositories.get(0).getLanguages()).hasSize(1);
         assertThat(repositories.get(0).getLanguages().get(0).getName()).isEqualTo("Scala-Unlimited");
