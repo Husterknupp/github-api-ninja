@@ -47,4 +47,13 @@ public class Repository {
     public String getLanguageURL() {
         return languageURL;
     }
+
+    @Override
+    public String toString() {
+        return "Repository{" +
+                "id='" + id + '\'' +
+                ", languageURL='" + languageURL + '\'' +
+                ", languages=" + languages +
+                '}';
+    }
 }

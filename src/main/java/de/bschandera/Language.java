@@ -52,4 +52,12 @@ public class Language {
         result = 31 * result + bytes.hashCode();
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "Language{" +
+                "name='" + name + '\'' +
+                ", bytes=" + bytes +
+                '}';
+    }
 }
