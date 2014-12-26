@@ -7,6 +7,7 @@ import com.google.gson.JsonParser;
 import net.sf.qualitycheck.Check;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -58,14 +59,13 @@ public class GitHubApi {
      */
     public static List<Language> aggregateLanguagesOfRepos(Collection<Repository> repositories) {
         Check.noNullElements(repositories, "repositories");
+
         Map<String, BigDecimal> bytesPerLanguage = new HashMap<>();
         for (Repository repository : repositories) {
             for (Language language : repository.getLanguages()) {
                 bytesPerLanguage.put(language.getName(), BigDecimal.ZERO);
             }
         }
-        System.out.println("RUN");
-        System.out.println("bytesPerLanguage: " + bytesPerLanguage);
 
         for (Repository repository : repositories) {
             for (Language language : repository.getLanguages()) {
@@ -73,7 +73,6 @@ public class GitHubApi {
                 bytesPerLanguage.put(language.getName(), cumulate);
             }
         }
-        System.out.println("bytesPerLanguage: " + bytesPerLanguage);
 
         List<Language> result = new ArrayList<>();
         for (String languageName : bytesPerLanguage.keySet()) {
@@ -98,6 +97,15 @@ public class GitHubApi {
             result.add(repo);
         }
         return result;
+    }
+
+    /**
+     * @return Status of {@linkplain #API_GITHUB_COM} == 200 ?
+     * @throws java.io.IOException when something with the HTTP connection is bad.
+     */
+    public boolean isAlive() throws IOException {
+        CloseableHttpResponse statusResponse = httpClient.execute(new HttpGet(API_GITHUB_COM));
+        return statusResponse.getStatusLine().getStatusCode() == 200;
     }
 
     /**
