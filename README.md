@@ -6,8 +6,9 @@ repositories on GitHub, in the form `Java: 37,3817 %`. Currently I only respect 
 prevention on GitHub site. Statistics are printed out on `System.out`.
 
 **Run**
-1) `mvn clean package`
-2) `java -jar target/github-api-ninja-1.0-SNAPSHOT-jar-with-dependencies.jar`
+
+1. `mvn clean package`
+2. `java -jar target/github-api-ninja-1.0-SNAPSHOT-jar-with-dependencies.jar`
 
 **Extensions**
 
@@ -18,7 +19,8 @@ See developer.github.com/v3/oauth_authorizations
 beautifully nice way. 
 - Persist the data a) to build some cache and avoid GitHub overload and b) to play around a little with a persistence
  unit.
-- Make a standalone webserver application. Use Spring Boot, for instance. 
+- Make a standalone webserver application. Use Spring Boot, for instance.
+- Mock HTTP connection: http://wiremock.org/
 
 **More new stuff**
 
@@ -26,4 +28,3 @@ beautifully nice way.
 - learn jquery: https://www.codeschool.com/courses/try-jquery
 - tryout purecss with jquery for example on any public api: [http://plnkr.co/](http://plnkr.co/edit/owTWPHW3xZDE8vnHn7ra?p=catalogue)
 - platform as a service: https://www.heroku.com/home
-- Mock HTTP connection: http://wiremock.org/
