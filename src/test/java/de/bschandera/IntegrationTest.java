@@ -1,5 +1,6 @@
 package de.bschandera;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.math.BigDecimal;
@@ -9,9 +10,10 @@ public class IntegrationTest {
 
     private static final BigDecimal _100 = BigDecimal.valueOf(100l);
 
+    @Ignore
     @Test
     public void run() {
-        List<Language> languages = new GitHubApi(5).aggregateLanguagesOfRepos();
+        List<Language> languages = new GitHubApi(5).aggregateLanguagesOfPublicRepos();
 
         BigDecimal bytesTotal = BigDecimal.ZERO;
         for (Language language : languages) {

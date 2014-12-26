@@ -44,7 +44,7 @@ public class Repository {
         return id;
     }
 
-    public String getLanguageURL() {
+    public String getLanguagesURL() {
         return languageURL;
     }
 

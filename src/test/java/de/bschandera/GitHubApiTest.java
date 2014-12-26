@@ -1,6 +1,7 @@
 package de.bschandera;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,17 +23,74 @@ public class GitHubApiTest {
     }
 
     @Test
-    public void testGetRepositories() {
+    public void testSerializingOfRepos() {
         JsonArray repoPayload = new JsonParser().parse(repoPayload_firstTwoRepos()).getAsJsonArray();
-        List<Repository> repositories = gitHub.getRepositories(repoPayload);
+        List<Repository> repositories = GitHubApi.getReposWithoutLanguages(repoPayload);
 
         assertThat(repositories).hasSize(2);
         assertThat(repositories.get(0).getId()).isEqualTo("1");
-        assertThat(repositories.get(0).getLanguages()).hasSize(1);
-        assertThat(repositories.get(0).getLanguages().get(0).getName()).isEqualTo("Scala-Unlimited");
+        assertThat(repositories.get(0).getLanguages()).hasSize(0);
+        assertThat(repositories.get(0).getLanguagesURL()).isEqualTo("https://api.github.com/repos/mojombo/grit/languages");
         assertThat(repositories.get(1).getId()).isEqualTo("26");
-        assertThat(repositories.get(1).getLanguages()).hasSize(1);
-        assertThat(repositories.get(1).getLanguages().get(0).getName()).isEqualTo("Scala-Unlimited");
+        assertThat(repositories.get(1).getLanguages()).hasSize(0);
+        assertThat(repositories.get(1).getLanguagesURL()).isEqualTo("https://api.github.com/repos/wycats/merb-core/languages");
+    }
+
+    @Test
+    public void testGetLanguages() {
+        JsonObject languagesPayload = new JsonParser().parse(languagePayload()).getAsJsonObject();
+        List<Language> languages = GitHubApi.getLanguages(languagesPayload);
+
+        assertThat(languages).hasSize(2);
+        assertThat(languages.get(0).getName()).isEqualTo("JavaScript");
+        assertThat(languages.get(0).getBytes()).isEqualTo(BigDecimal.valueOf(8925));
+        assertThat(languages.get(1).getName()).isEqualTo("Ruby");
+        assertThat(languages.get(1).getBytes()).isEqualTo(BigDecimal.valueOf(948883));
+    }
+
+    @Test
+    public void testAggregateLanguagesOfRepos() {
+        BigDecimal _100 = BigDecimal.valueOf(100);
+        BigDecimal _200 = BigDecimal.valueOf(200);
+        BigDecimal _300 = BigDecimal.valueOf(300);
+        BigDecimal _400 = BigDecimal.valueOf(400);
+        BigDecimal _600 = BigDecimal.valueOf(600);
+
+        List<Repository> repositories = new ArrayList<>();
+        repositories.add(new Repository("id1", Arrays.asList(
+                new Language("Java", _100),
+                new Language("Scala", _100))));
+        assertThat(GitHubApi.aggregateLanguagesOfRepos(repositories)).containsOnly(new Language("Java", _100), new Language("Scala", _100));
+
+        repositories = new ArrayList<>();
+        repositories.add(new Repository("id1", Arrays.asList(
+                new Language("Java", _100),
+                new Language("Scala", _100))));
+        repositories.add(new Repository("id2", Arrays.asList(
+                new Language("Scala", _100),
+                new Language("Haskell", _100))));
+        repositories.add(new Repository("id3", Arrays.asList(
+                new Language("Haskell", _200),
+                new Language("Java", _300),
+                new Language("Scala", _400))));
+        assertThat(GitHubApi.aggregateLanguagesOfRepos(repositories)).
+                containsOnly(new Language("Java", _400), new Language("Scala", _600), new Language("Haskell", _300));
+    }
+
+    @Test
+    public void testAggregateLanguagesOfReposWithEmptyInput() {
+        assertThat(GitHubApi.aggregateLanguagesOfRepos(new ArrayList<Repository>())).isEmpty();
+    }
+
+    @Test
+    public void testAggregateLanguagesOfRepos_multipleEqualRepos() {
+        BigDecimal _100 = BigDecimal.valueOf(100);
+        BigDecimal _200 = BigDecimal.valueOf(200);
+        List<Repository> repositories = new ArrayList<>();
+        repositories.add(new Repository("id1", Arrays.asList(new Language("Java", _100))));
+        repositories.add(new Repository("id1", Arrays.asList(new Language("Java", _100))));
+
+        assertThat(GitHubApi.aggregateLanguagesOfRepos(repositories)).containsOnly(new Language("Java", _200));
     }
 
     private static String languagePayload() {
@@ -175,56 +233,6 @@ public class GitHubApiTest {
                 "    \"releases_url\": \"https://api.github.com/repos/wycats/merb-core/releases{/id}\"\n" +
                 "  }\n" +
                 "]";
-    }
-
-    private static String expectedResult() {
-        return "[Repository{languages=[Language{name='Scala-Unlimited‚', bytes=1419244950069}], id='1'}, Repository{languages=[Language{name='Scala-Unlimited‚', bytes=1419244950070}], id='26'}, Repository{languages=[Language{name='Scala-Unlimited‚', bytes=1419244950070}], id='27'}, Repository{languages=[Language{name='Scala-Unlimited‚', bytes=1419244950070}], id='28'}, Repository{languages=[Language{name='Scala-Unlimited‚', bytes=1419244950070}], id='29'}, Repository{languages=[Language{name='Scala-Unlimited‚', bytes=1419244950070}], id='31'}, Repository{languages=[Language{name='Scala-Unlimited‚', bytes=1419244950070}], id='35'}, Repository{languages=[Language{name='Scala-Unlimited‚', bytes=1419244950070}], id='36'}, Repository{languages=[Language{name='Scala-Unlimited‚', bytes=1419244950070}], id='42'}, Repository{languages=[Language{name='Scala-Unlimited‚', bytes=1419244950070}], id='43'}]";
-
-    }
-
-    @Test
-    public void testAggregateLanguagesOfReposWithEmptyInput() {
-        assertThat(GitHubApi.aggregateLanguagesOfRepos(new ArrayList<Repository>())).isEmpty();
-    }
-
-    @Test
-    public void testAggregateLanguagesOfRepos_multipleEqualRepos() {
-        BigDecimal _100 = BigDecimal.valueOf(100);
-        BigDecimal _200 = BigDecimal.valueOf(200);
-        List<Repository> repositories = new ArrayList<>();
-        repositories.add(new Repository("id1", Arrays.asList(new Language("Java", _100))));
-        repositories.add(new Repository("id1", Arrays.asList(new Language("Java", _100))));
-
-        assertThat(GitHubApi.aggregateLanguagesOfRepos(repositories)).containsOnly(new Language("Java", _200));
-    }
-
-    @Test
-    public void testAggregateLanguagesOfRepos() {
-        BigDecimal _100 = BigDecimal.valueOf(100);
-        BigDecimal _200 = BigDecimal.valueOf(200);
-        BigDecimal _300 = BigDecimal.valueOf(300);
-        BigDecimal _400 = BigDecimal.valueOf(400);
-        BigDecimal _600 = BigDecimal.valueOf(600);
-
-        List<Repository> repositories = new ArrayList<>();
-        repositories.add(new Repository("id1", Arrays.asList(
-                new Language("Java", _100),
-                new Language("Scala", _100))));
-        assertThat(GitHubApi.aggregateLanguagesOfRepos(repositories)).containsOnly(new Language("Java", _100), new Language("Scala", _100));
-
-        repositories = new ArrayList<>();
-        repositories.add(new Repository("id1", Arrays.asList(
-                new Language("Java", _100),
-                new Language("Scala", _100))));
-        repositories.add(new Repository("id2", Arrays.asList(
-                new Language("Scala", _100),
-                new Language("Haskell", _100))));
-        repositories.add(new Repository("id3", Arrays.asList(
-                new Language("Haskell", _200),
-                new Language("Java", _300),
-                new Language("Scala", _400))));
-        assertThat(GitHubApi.aggregateLanguagesOfRepos(repositories)).
-                containsOnly(new Language("Java", _400), new Language("Scala", _600), new Language("Haskell", _300));
     }
 
 }
