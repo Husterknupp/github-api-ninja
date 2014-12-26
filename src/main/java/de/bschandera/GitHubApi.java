@@ -60,25 +60,34 @@ public class GitHubApi {
     public static List<Language> aggregateLanguagesOfRepos(Collection<Repository> repositories) {
         Check.noNullElements(repositories, "repositories");
 
-        Map<String, BigDecimal> bytesPerLanguage = new HashMap<>();
-        for (Repository repository : repositories) {
-            for (Language language : repository.getLanguages()) {
-                bytesPerLanguage.put(language.getName(), BigDecimal.ZERO);
-            }
-        }
-
-        for (Repository repository : repositories) {
-            for (Language language : repository.getLanguages()) {
-                BigDecimal cumulate = bytesPerLanguage.get(language.getName()).add(language.getBytes());
-                bytesPerLanguage.put(language.getName(), cumulate);
-            }
-        }
+        Map<String, BigDecimal> bytesPerLanguage = cumulateBytesPerLanguage(repositories);
 
         List<Language> result = new ArrayList<>();
         for (String languageName : bytesPerLanguage.keySet()) {
             result.add(new Language(languageName, bytesPerLanguage.get(languageName)));
         }
         return result;
+    }
+
+    private static Map<String, BigDecimal> cumulateBytesPerLanguage(Collection<Repository> repositories) {
+        Map<String, BigDecimal> bytesPerLanguage = initializeWithZeros(repositories);
+        for (Repository repository : repositories) {
+            for (Language language : repository.getLanguages()) {
+                BigDecimal cumulate = bytesPerLanguage.get(language.getName()).add(language.getBytes());
+                bytesPerLanguage.put(language.getName(), cumulate);
+            }
+        }
+        return bytesPerLanguage;
+    }
+
+    private static Map<String, BigDecimal> initializeWithZeros(Collection<Repository> repositories) {
+        Map<String, BigDecimal> bytesPerLanguage = new HashMap<>();
+        for (Repository repository : repositories) {
+            for (Language language : repository.getLanguages()) {
+                bytesPerLanguage.put(language.getName(), BigDecimal.ZERO);
+            }
+        }
+        return bytesPerLanguage;
     }
 
     /**
