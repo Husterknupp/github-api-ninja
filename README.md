@@ -4,7 +4,8 @@ github-api-ninja
 GitHub API client with some statistics on public repositories. Show language statistics on regarding public 
 repositories on GitHub, in the form `Java: 37,3817 %`. Currently I only respect the first five because of DOS 
 prevention on GitHub site. Statistics are printed out on `System.out`.
-**Result**
+
+**Results**
 
 Statistics of the first 50 repositories (Dec 28, 2014)
 
