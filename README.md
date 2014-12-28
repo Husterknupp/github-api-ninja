@@ -31,6 +31,7 @@ Makefile: 0.04413469082916982100 %
 
 1. `mvn clean package`
 2. `java -jar target/github-api-ninja-1.0-SNAPSHOT-jar-with-dependencies.jar`
+3. `java -jar target/github-api-ninja-1.0-SNAPSHOT-jar-with-dependencies.jar 50` for statistics on the first 50 repos.
 
 **Extensions**
 
