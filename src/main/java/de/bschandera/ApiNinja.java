@@ -7,7 +7,7 @@ import java.util.List;
 public class ApiNinja {
 
     private static final BigDecimal _100 = BigDecimal.valueOf(100);
-    private static final int SCALE_20 = 20;
+    private static final int SCALE_6 = 6;
 
     public static void main(String[] args) {
 
@@ -65,7 +65,7 @@ public class ApiNinja {
     }
 
     private static BigDecimal asPercentage(BigDecimal bytes, BigDecimal bytesTotal) {
-        return bytes.divide(bytesTotal, SCALE_20, BigDecimal.ROUND_HALF_UP);
+        return bytes.divide(bytesTotal, SCALE_6, BigDecimal.ROUND_HALF_UP);
     }
 
 }
