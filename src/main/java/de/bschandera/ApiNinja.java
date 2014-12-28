@@ -11,8 +11,18 @@ public class ApiNinja {
 
     public static void main(String[] args) {
 
-        GitHubApi gitHub = new GitHubApi(5);
+        GitHubApi gitHub;
+        if (args.length == 1) {
+            gitHub = new GitHubApi(Integer.parseInt(args[0]));
+            System.out.println("I'll do at most " + Integer.parseInt(args[0]) + " api calls (" +
+                    (Integer.parseInt(args[0]) - 2) + " repos). Promise.");
+        } else {
+            gitHub = new GitHubApi(12);
+            System.out.println("I'll do at most 12 api calls (10 repos). Promise.");
+        }
         if (!available(gitHub)) return;
+        System.out.println("GitHub's status is all fine. Let the show begin.");
+        System.out.println();
 
         List<Language> languagesOfPublicRepos = gitHub.aggregateLanguagesOfPublicRepos();
         BigDecimal bytesTotal = sumUpBytesTotal(languagesOfPublicRepos);

@@ -27,16 +27,18 @@ public class GitHubApi {
     private static final String REPOSITORIES = "/repositories";
 
     private final CloseableHttpClient httpClient;
-    private final int repoLimit; // TODO use appropriately
+    private final int maxApiCalls;
+    private int doneApiCalls;
 
-    public GitHubApi(Integer repoLimit) {
-        this(repoLimit, HttpClientBuilder.create().build());
+    public GitHubApi(Integer maxApiCalls) {
+        this(maxApiCalls, HttpClientBuilder.create().build());
     }
 
-    public GitHubApi(Integer repoLimit, CloseableHttpClient httpClient) {
-        Check.notNegative(repoLimit, "repoLimit");
-        this.repoLimit = repoLimit;
+    public GitHubApi(Integer maxApiCalls, CloseableHttpClient httpClient) {
+        Check.notNegative(maxApiCalls, "maxApiCalls");
+        this.maxApiCalls = maxApiCalls;
         this.httpClient = httpClient;
+        this.doneApiCalls = 0;
     }
 
     /**
@@ -91,8 +93,8 @@ public class GitHubApi {
     }
 
     /**
-     * Ask GitHub API for the first 100 repositories. A {@linkplain de.bschandera.Repository} is less detailed view on
-     * the data provided by GitHub.
+     * Ask GitHub API for public repositories. A {@linkplain de.bschandera.Repository} is less detailed view on
+     * the data provided by GitHub. Given an api call limit, this method only returns at most limit - 1 repos.
      *
      * @return
      */
@@ -101,6 +103,9 @@ public class GitHubApi {
                 getResponseAsJson(API_GITHUB_COM + REPOSITORIES).getAsJsonArray());
         List<Repository> result = new ArrayList<>();
         for (Repository repo : reposWithoutLanguages) {
+            if (doneApiCalls == maxApiCalls) {
+                break;
+            }
             List<Language> languages = getLanguages(getResponseAsJson(repo.getLanguagesURL()).getAsJsonObject());
             repo.setLanguages(languages);
             result.add(repo);
@@ -114,11 +119,13 @@ public class GitHubApi {
      */
     public boolean isAlive() throws IOException {
         CloseableHttpResponse statusResponse = httpClient.execute(new HttpGet(API_GITHUB_COM));
+        doneApiCalls++;
         return statusResponse.getStatusLine().getStatusCode() == 200;
     }
 
     /**
-     * Ask GitHub how many calls still can be done with this IP until new calls will be rejected.
+     * Ask GitHub how many calls still can be done with this IP until new calls will be rejected. See X-RateLimit-Remaining
+     * header of GitHub api response.
      *
      * @return
      */
@@ -164,6 +171,7 @@ public class GitHubApi {
     }
 
     private JsonElement getResponseAsJson(String uri) {
+        doneApiCalls++;
         return getResponseAsJson(uri, this.httpClient);
     }
 
