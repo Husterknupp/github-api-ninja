@@ -1,6 +1,5 @@
 package de.bschandera;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -20,9 +19,14 @@ public class ApiNinja {
             gitHub = new GitHubApi(12);
             System.out.println("I'll do at most 12 api calls (10 repos). Promise.");
         }
-        if (!available(gitHub)) return;
-        System.out.println("GitHub's status is all fine. Let the show begin.");
-        System.out.println();
+
+        if (!gitHub.isAvailable()) {
+            System.out.println("Since you are connected to the internet, probably GitHub faces some real problems... Try again later");
+            return;
+        } else {
+            System.out.println("GitHub's status is all fine. Let the show begin.");
+            System.out.println();
+        }
 
         List<Language> languagesOfPublicRepos = gitHub.aggregateLanguagesOfPublicRepos();
         BigDecimal bytesTotal = sumUpBytesTotal(languagesOfPublicRepos);
@@ -30,21 +34,6 @@ public class ApiNinja {
 
         String result = formatResult(languagesOfPublicRepos, bytesTotal);
         System.out.println(result);
-    }
-
-    private static boolean available(GitHubApi gitHub) {
-        try {
-            if (!gitHub.isAlive()) {
-                System.out.println("GitHub API currently unavailable.");
-                System.out.println("Since you are connected to the internet, probably GitHub faces some real problems... Try again later");
-                return false;
-            }
-        } catch (IOException e) {
-            System.out.println("GitHub API currently unavailable. Are you connected to this internet thingy?");
-            e.printStackTrace(System.err);
-            return false;
-        }
-        return true;
     }
 
     private static BigDecimal sumUpBytesTotal(List<Language> languagesOfPublicRepos) {

@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.sf.qualitycheck.Check;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -115,10 +116,19 @@ public class GitHubApi {
 
     /**
      * @return Status of {@linkplain #API_GITHUB_COM} == 200 ?
-     * @throws java.io.IOException when something with the HTTP connection is bad.
+     * @throws java.lang.RuntimeException when something with the HTTP connection is bad.
      */
-    public boolean isAlive() throws IOException {
-        CloseableHttpResponse statusResponse = httpClient.execute(new HttpGet(API_GITHUB_COM));
+    public boolean isAvailable() {
+        CloseableHttpResponse statusResponse;
+        try {
+            statusResponse = httpClient.execute(new HttpGet(API_GITHUB_COM));
+        } catch (ClientProtocolException e) {
+            System.out.println("GitHub API currently unavailable. Are you connected to this internet thingy?");
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            System.out.println("GitHub API currently unavailable. Are you connected to this internet thingy?");
+            throw new RuntimeException(e);
+        }
         doneApiCalls++;
         return statusResponse.getStatusLine().getStatusCode() == 200;
     }
