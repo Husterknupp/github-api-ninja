@@ -43,9 +43,8 @@ Makefile: 0.04413469082916982100 %
 beautifully nice way. 
 - Persist the data a) to build some cache and avoid GitHub overload and b) to play around a little with a persistence
  unit.
-- Make a standalone webserver application. Use Spring Boot, for instance.
+- Make a standalone webserver application. Use Spring Boot, for instance. Is [JHipster](https://jhipster.github.io) an option for this? Probably not because I dont know Angular...
 - Mock HTTP connection: http://wiremock.org/
-- Use
 
 **More new stuff**
 
