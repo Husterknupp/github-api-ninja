@@ -3,7 +3,6 @@ package de.bschandera;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.math.BigDecimal;
@@ -14,13 +13,6 @@ import java.util.List;
 import static org.fest.assertions.Assertions.assertThat;
 
 public class GitHubApiTest {
-
-    private GitHubApi gitHub;
-
-    @Before
-    public void setup() {
-        gitHub = new GitHubApi(0);
-    }
 
     @Test
     public void testSerializingOfRepos() {
