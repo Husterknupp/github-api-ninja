@@ -7,24 +7,30 @@ prevention on GitHub site. Statistics are printed out on `System.out`.
 
 **Results**
 
-Statistics of the first 50 repositories (Dec 28, 2014)
+Statistics of the first 100 repositories (Jan 16, 2015)
 
 ```
-bytesTotal: 16732869
-D: 0.02947492148537109800 %
-ActionScript: 0.02533337229855800600 %
-Ruby: 68.92710986980176561500 %
-C: 3.65037818678912743500 %
-CSS: 0.05196956959383355000 %
-CoffeeScript: 0.00007769139888682600 %
-Perl: 1.53456648707403374800 %
-Ragel in Ruby Host: 0.03487148557727906700 %
-Objective-C: 0.00018526410503781500 %
-Shell: 0.21458364372541254000 %
-Python: 0.12648159738775221400 %
-C++: 19.48550484677791955500 %
-JavaScript: 5.87532837315585271100 %
-Makefile: 0.04413469082916982100 %
+bytesTotal: 35090025
+Io: 0.048000 %
+D: 0.014100 %
+Scheme: 0.227600 %
+Arc: 0.579500 %
+ActionScript: 0.012100 %
+Ruby: 75.048200 %
+C: 1.749000 %
+CSS: 0.388200 %
+CoffeeScript: 0.001800 %
+Perl: 0.732100 %
+Ragel in Ruby Host: 0.016600 %
+Emacs Lisp: 0.046000 %
+PHP: 0.003000 %
+Objective-C: 0.000100 %
+Erlang: 4.595500 %
+Shell: 0.112200 %
+Python: 0.486300 %
+C++: 9.397900 %
+JavaScript: 6.521000 %
+Makefile: 0.021000 %
 ```
 
 **Run**
