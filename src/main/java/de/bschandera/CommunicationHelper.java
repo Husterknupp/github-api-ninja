@@ -116,7 +116,7 @@ public class CommunicationHelper {
             doneApiCalls++;
             return statusResponse.getStatusLine().getStatusCode() == 200;
         } catch (IOException e) {
-            System.out.println("GitHub API currently unavailable. Are you connected to this internet thingy?");
+            System.out.println("I'm facing some connection problems. Are you connected to this internet thingy?");
             System.out.println(e);
             return false;
         }

@@ -6,7 +6,7 @@ import java.util.List;
 public class ApiNinja {
 
     private static final BigDecimal _100 = BigDecimal.valueOf(100);
-    private static final int SCALE_6 = 6;
+    private static final int BIG_DECIMAL_SCALE_6 = 6;
 
     // TODO be less restrictive: broken api calls make the ninja fail :(
     public static void main(String[] args) {
@@ -22,7 +22,7 @@ public class ApiNinja {
         }
 
         if (!gitHub.isAvailable()) {
-            System.out.println("Since you are connected to the internet, probably GitHub faces some real problems... Try again later");
+            System.out.println("I cannot reach GitHub... Please try again later");
             return;
         } else {
             System.out.println("GitHub's status is all fine. Let the show begin.");
@@ -55,7 +55,7 @@ public class ApiNinja {
     }
 
     private static BigDecimal asPercentage(BigDecimal bytes, BigDecimal bytesTotal) {
-        return bytes.divide(bytesTotal, SCALE_6, BigDecimal.ROUND_HALF_UP);
+        return bytes.divide(bytesTotal, BIG_DECIMAL_SCALE_6, BigDecimal.ROUND_HALF_UP);
     }
 
 }
