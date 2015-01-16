@@ -8,6 +8,7 @@ public class ApiNinja {
     private static final BigDecimal _100 = BigDecimal.valueOf(100);
     private static final int SCALE_6 = 6;
 
+    // TODO be less restrictive: broken api calls make the ninja fail :(
     public static void main(String[] args) {
 
         GitHubApi gitHub;

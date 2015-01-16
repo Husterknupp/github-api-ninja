@@ -1,21 +1,12 @@
 package de.bschandera;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import net.sf.qualitycheck.Check;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.scribe.builder.ServiceBuilder;
-import org.scribe.model.*;
-import org.scribe.oauth.OAuthService;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
+
+import static de.bschandera.ModelFactory.getLanguages;
+import static de.bschandera.ModelFactory.getReposWithoutLanguages;
 
 /**
  * Provide a convenient way to handle the public GitHub REST API v3. Hide away HTTP calls and also the necessary JSON
@@ -24,44 +15,12 @@ import java.util.*;
 public class GitHubApi {
     private static final String URL_API_GITHUB_COM = "https://api.github.com";
     private static final String URL_REPOSITORIES = "/repositories";
-    private static final JsonParser PARSER = new JsonParser();
-    private static final Token EMPTY_TOKEN = null;
-    private static final String CALLBACK_URL = "https://github.com/login/oauth/authorize";
-    private static final String JSON_MEMBER_ID = "id";
-    private static final String JSON_MEMBER_LANGUAGES_URL = "languages_url";
 
-    private final CloseableHttpClient httpClient;
-    private final int maxApiCalls;
-    private int doneApiCalls;
-    private final OAuthService oAuthService;
-    private final Token token;
-
-    /*
-    TODO move JSON mapping stuff into separate class
-     */
+    private CommunicationHelper communicationHelper;
 
     public GitHubApi(Integer maxApiCalls) {
-        this(maxApiCalls, HttpClientBuilder.create().build());
-    }
-
-    public GitHubApi(Integer maxApiCalls, CloseableHttpClient httpClient) {
         Check.notNegative(maxApiCalls, "maxApiCalls");
-        this.maxApiCalls = maxApiCalls;
-        this.httpClient = httpClient;
-        this.doneApiCalls = 0;
-        oAuthService = getoAuthService(readApiKey(), readApiSecret());
-        final String code = generateAuthCode();
-        token = generateToken(oAuthService, code);
-    }
-
-    private static String readApiKey() {
-        System.out.println("API key... we need your API key:");
-        return new Scanner(System.in).nextLine();
-    }
-
-    private static String readApiSecret() {
-        System.out.println("And - tadaaa - your API secret:");
-        return new Scanner(System.in).nextLine();
+        communicationHelper = new CommunicationHelper(maxApiCalls);
     }
 
     /**
@@ -123,13 +82,14 @@ public class GitHubApi {
      */
     public List<Repository> getPublicRepositories() {
         List<Repository> reposWithoutLanguages = getReposWithoutLanguages(
-                getResponseAsJson(URL_API_GITHUB_COM + URL_REPOSITORIES).getAsJsonArray());
+                // TODO make call easier (i.e., give it into this method as a parameter)
+                communicationHelper.getResponseAsJson(URL_API_GITHUB_COM + URL_REPOSITORIES).getAsJsonArray());
         List<Repository> result = new ArrayList<>();
         for (Repository repo : reposWithoutLanguages) {
-            if (doneApiCalls == maxApiCalls) {
+            if (communicationHelper.allApiCallsAreComsumed()) {
                 break;
             }
-            List<Language> languages = getLanguages(getResponseAsJson(repo.getLanguagesURL()).getAsJsonObject());
+            List<Language> languages = getLanguages(communicationHelper.getResponseAsJson(repo.getLanguagesURL()).getAsJsonObject());
             repo.setLanguages(languages);
             result.add(repo);
         }
@@ -141,15 +101,7 @@ public class GitHubApi {
      * @throws java.lang.RuntimeException when something with the HTTP connection is bad.
      */
     public boolean isAvailable() {
-        CloseableHttpResponse statusResponse;
-        try {
-            statusResponse = httpClient.execute(new HttpGet(URL_API_GITHUB_COM));
-        } catch (IOException e) {
-            System.out.println("GitHub API currently unavailable. Are you connected to this internet thingy?");
-            throw new RuntimeException(e);
-        }
-        doneApiCalls++;
-        return statusResponse.getStatusLine().getStatusCode() == 200;
+        return communicationHelper.urlIsAvailable(URL_API_GITHUB_COM);
     }
 
     /**
@@ -165,106 +117,4 @@ public class GitHubApi {
     public String createSession() {
         throw new UnsupportedOperationException();
     }
-
-    /*
-    ==================================
-
-    JSON PARSING STUFF
-
-    ==================================
-     */
-
-    /**
-     * {@linkplain de.bschandera.Repository}s that only have their name and their language id. No languages are contended, yet.
-     * Please use {@linkplain #getLanguages(com.google.gson.JsonObject)} for this task.
-     *
-     * @param allReposPayload
-     * @return
-     */
-    public static List<Repository> getReposWithoutLanguages(JsonArray allReposPayload) {
-        // TODO accept plain String
-        List<Repository> result = new ArrayList<>();
-        for (JsonElement repo : allReposPayload.getAsJsonArray()) {
-            result.add(new Repository(extractId(repo), extractLanguageURL(repo)));
-        }
-        return result;
-    }
-
-    public static List<Language> getLanguages(JsonObject languagesPayload) {
-        List<Language> result = new ArrayList<>();
-        for (Map.Entry<String, JsonElement> languageOccurrence : languagesPayload.entrySet()) {
-            final String name = languageOccurrence.getKey();
-            final BigDecimal bytes = BigDecimal.valueOf(languageOccurrence.getValue().getAsLong());
-            result.add(new Language(name, bytes));
-        }
-        return result;
-    }
-
-     /*
-    ==================================
-
-    HTTP COMMUNICATION STUFF
-
-    ==================================
-     */
-
-    /**
-     * Make REST call against the GitHub API. Parse result to JSON. Request will be signed with a token. So all requests
-     * are less restricted.
-     *
-     * @param uri
-     * @return
-     */
-    private JsonElement getResponseAsJson(String uri) {
-        doneApiCalls++;
-        OAuthRequest request = new OAuthRequest(Verb.GET, uri);
-        oAuthService.signRequest(token, request);
-        Response response = request.send();
-        return PARSER.parse(response.getBody());
-    }
-
-    /**
-     * Extract id of a specific repo.
-     *
-     * @param repoAsJson
-     * @return
-     */
-    private static String extractId(JsonElement repoAsJson) {
-        return repoAsJson.getAsJsonObject().getAsJsonPrimitive(JSON_MEMBER_ID).getAsString();
-    }
-
-    private static String extractLanguageURL(JsonElement repoAsJson) {
-        return repoAsJson.getAsJsonObject().getAsJsonPrimitive(JSON_MEMBER_LANGUAGES_URL).getAsString();
-    }
-
-    private static OAuthService getoAuthService(String apiKey, String apiSecret) {
-        // Replace these with your own api key and secret (found on https://github.com/settings/applications/155857)
-        return new ServiceBuilder()
-                .provider(GitHubOAuthImpl.class)
-                .apiKey(apiKey)
-                .apiSecret(apiSecret)
-                        // callback as described here https://developer.github.com/v3/oauth/#web-application-flow #1
-                .callback(CALLBACK_URL)
-                .build();
-    }
-
-    private String generateAuthCode() {
-        // TODO authorize automatically (required code is provided when calling the authorizationUrl)
-        String authorizationUrl = oAuthService.getAuthorizationUrl(EMPTY_TOKEN);
-        System.out.println("Got the Authorization URL!");
-        System.out.println("Now go and authorize Scribe here:");
-        System.out.println(authorizationUrl);
-        // I followed that link and found the code in the redirect url https://github.com/login/oauth/authorize?code=cf37d19cec7e91f0de33
-        System.out.println("And paste the authorization code here");
-        System.out.print(">>");
-        return new Scanner(System.in).nextLine();
-    }
-
-    private static Token generateToken(OAuthService service, final String code) {
-        // I followed that link and found the code in the redirect url https://github.com/login/oauth/authorize?code=...
-        Verifier verifier = new Verifier(code);
-        // Trade the Request Token and Verfier for the Access Token
-        return service.getAccessToken(EMPTY_TOKEN, verifier);
-    }
-
 }
