@@ -1,8 +1,10 @@
 package de.bschandera;
 
+import com.google.common.base.Optional;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import net.sf.qualitycheck.Check;
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -23,37 +25,23 @@ public class CommunicationHelper {
     private static final JsonParser PARSER = new JsonParser();
     private static final Token EMPTY_TOKEN = null;
     private static final String CALLBACK_URL = "https://github.com/login/oauth/authorize";
+    private static final String HEADER_X_RATE_REMAINING = "X-RateLimit-Remaining";
 
     private OAuthService oAuthService;
     private String code;
     private Token token;
     private final HttpClient httpClient;
-    private final int maxApiCalls; // Todo generate automatically regarding ??-header
-    private int doneApiCalls;
+    private int apiCallsRemaining;
 
-    public CommunicationHelper(int maxApiCalls) {
-        this(maxApiCalls, HttpClientBuilder.create().build());
+    public CommunicationHelper() {
+        // if no X-RateLimit-Remaining header can be achieved, 50 should be enough
+        this(50, HttpClientBuilder.create().build());
     }
 
     public CommunicationHelper(int maxApiCalls, HttpClient httpClient) {
         Check.notNull(httpClient, "httpClient");
-        this.maxApiCalls = maxApiCalls;
-        this.doneApiCalls = 0;
         this.httpClient = httpClient;
-    }
-
-    /**
-     * @return Number of api calls that can be done against the api.
-     */
-    public int getMaxApiCalls() {
-        return maxApiCalls;
-    }
-
-    /**
-     * @return Number of api calls that are already done within this application run.
-     */
-    public int getDoneApiCalls() {
-        return doneApiCalls;
+        apiCallsRemaining = maxApiCalls;
     }
 
     /**
@@ -63,12 +51,22 @@ public class CommunicationHelper {
      * @param uri
      * @return
      */
-    public JsonElement getResponseAsJson(String uri) {
+    public Optional<JsonElement> getResponseAsJson(String uri) {
         Check.notNull(uri, "uri");
-        doneApiCalls++;
+        Check.stateIsTrue(hasStillApiCallsLeft(), "Wanted to call the API but no rate limit remaining anymore.");
+
         OAuthRequest request = getoAuthSignedRequest(uri);
         Response response = request.send();
-        return PARSER.parse(response.getBody());
+        adjustRateRemaining(response);
+        if (response.isSuccessful()) {
+            return Optional.of(PARSER.parse(response.getBody()));
+        } else {
+            System.out.println(uri + " was called");
+            System.out.println(response.getCode() + " status code");
+            System.out.println("Body:\n" + response.getBody());
+            System.out.println();
+            return Optional.absent();
+        }
     }
 
     private OAuthRequest getoAuthSignedRequest(String uri) {
@@ -90,13 +88,24 @@ public class CommunicationHelper {
         token = generateToken(oAuthService, code);
     }
 
+    private void adjustRateRemaining(Object response) {
+        if (response instanceof Response) {
+            apiCallsRemaining = Integer.parseInt(((Response) response).getHeader(HEADER_X_RATE_REMAINING));
+        } else if (response instanceof HttpResponse) {
+            final Header rateLimitHeader = ((HttpResponse) response).getHeaders(HEADER_X_RATE_REMAINING)[0];
+            apiCallsRemaining = Integer.parseInt(rateLimitHeader.getValue());
+        }
+    }
+
     private static String readApiKey() {
-        System.out.println("API key - we need your API key. >>");
+        System.out.println("API key - we need your API key.");
+        System.out.print(">>");
         return new Scanner(System.in).nextLine();
     }
 
     private static String readApiSecret() {
-        System.out.println("And your - API secret - surprise! >>");
+        System.out.println("And your - API secret - surprise!");
+        System.out.print(">>");
         return new Scanner(System.in).nextLine();
     }
 
@@ -120,7 +129,9 @@ public class CommunicationHelper {
         // I followed that link and found the code in the redirect url https://github.com/login/oauth/authorize?code=cf37d19cec7e91f0de33
         System.out.println("And paste the authorization code here");
         System.out.print(">>");
-        return new Scanner(System.in).nextLine();
+        final String code = new Scanner(System.in).nextLine();
+        System.out.println();
+        return code;
     }
 
     private static Token generateToken(OAuthService service, final String code) {
@@ -131,10 +142,11 @@ public class CommunicationHelper {
     }
 
     /**
-     * @return {@code true} if and only if the same number of api calls is made as is allowed by {@linkplain #getMaxApiCalls()}.
+     * @return {@code true} if and only if there are still calls allowed against the api - according to either the
+     * constructor parameter or the {@linkplain #HEADER_X_RATE_REMAINING} header of done requests.
      */
-    public boolean allApiCallsAreConsumed() {
-        return getDoneApiCalls() == getMaxApiCalls();
+    public boolean hasStillApiCallsLeft() {
+        return apiCallsRemaining > 0;
     }
 
     /**
@@ -147,13 +159,15 @@ public class CommunicationHelper {
      */
     public boolean urlIsAvailable(String url) {
         Check.notNull(url, "url");
+        Check.stateIsTrue(hasStillApiCallsLeft(), "Wanted to call the API but no rate limit remaining anymore.");
         try {
-            HttpResponse statusResponse = httpClient.execute(new HttpGet(url));
-            doneApiCalls++;
-            return statusResponse.getStatusLine().getStatusCode() == 200;
+            HttpResponse response = httpClient.execute(new HttpGet(url));
+            adjustRateRemaining(response);
+            return response.getStatusLine().getStatusCode() == 200;
         } catch (IOException e) {
             System.out.println("I'm facing some connection problems. Are you connected to this internet thingy?");
             System.out.println(e);
+            System.out.println();
             return false;
         }
     }

@@ -52,9 +52,9 @@ public class ModelFactory {
      * ...}</p>
      *
      * @param allReposPayload
-     * @return
+     * @return Repository that does not contain languages.
      */
-    public static List<Repository> getReposWithoutLanguages(JsonArray allReposPayload) {
+    public static List<Repository> parseRepos(JsonArray allReposPayload) {
         // TODO accept plain String
         Check.notNull(allReposPayload, "allReposPayload");
         List<Repository> result = new ArrayList<>();

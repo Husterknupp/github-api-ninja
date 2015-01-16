@@ -1,12 +1,11 @@
 package de.bschandera;
 
+import com.google.common.base.Optional;
+import com.google.gson.JsonElement;
 import net.sf.qualitycheck.Check;
 
 import java.math.BigDecimal;
 import java.util.*;
-
-import static de.bschandera.ModelFactory.getReposWithoutLanguages;
-import static de.bschandera.ModelFactory.parseLanguages;
 
 /**
  * <p>Provide a convenient way to handle the public GitHub REST api v3. Hide away HTTP calls and also the necessary JSON
@@ -20,12 +19,8 @@ public class GitHubApi {
 
     private CommunicationHelper communicationHelper;
 
-    /**
-     * @param maxApiCalls must not be a negative number.
-     */
-    public GitHubApi(Integer maxApiCalls) {
-        Check.notNegative(maxApiCalls, "maxApiCalls");
-        communicationHelper = new CommunicationHelper(maxApiCalls);
+    public GitHubApi() {
+        communicationHelper = new CommunicationHelper();
     }
 
     /**
@@ -86,15 +81,25 @@ public class GitHubApi {
      * @return
      */
     public List<Repository> getPublicRepositories() {
-        List<Repository> reposWithoutLanguages = getReposWithoutLanguages(
-                // TODO make call easier (i.e., give json response into this method as a parameter)
-                communicationHelper.getResponseAsJson(URL_REPOSITORIES).getAsJsonArray());
+        // TODO make call easier (i.e., give json response into this method as a parameter)
+        final Optional<JsonElement> responseAsJson = communicationHelper.getResponseAsJson(URL_REPOSITORIES);
+        if (!responseAsJson.isPresent()) {
+            return Collections.emptyList();
+        }
+
+        List<Repository> reposWithoutLanguages = ModelFactory.parseRepos(responseAsJson.get().getAsJsonArray());
         List<Repository> result = new ArrayList<>();
         for (Repository repo : reposWithoutLanguages) {
-            if (communicationHelper.allApiCallsAreConsumed()) {
+            if (!communicationHelper.hasStillApiCallsLeft()) {
+                System.out.println("No more api calls are allowed (X-RateLimit-Remaining = 0)\n");
                 break;
             }
-            List<Language> languages = parseLanguages(communicationHelper.getResponseAsJson(repo.getLanguagesURL()).getAsJsonObject());
+
+            final Optional<JsonElement> languagesAsJson = communicationHelper.getResponseAsJson(repo.getLanguagesURL());
+            if (!languagesAsJson.isPresent()) {
+                break;
+            }
+            List<Language> languages = ModelFactory.parseLanguages(languagesAsJson.get().getAsJsonObject());
             repo.setLanguages(languages);
             result.add(repo);
         }
@@ -106,19 +111,5 @@ public class GitHubApi {
      */
     public boolean isAvailable() {
         return communicationHelper.urlIsAvailable(URL_API_GITHUB_COM);
-    }
-
-    /**
-     * Ask GitHub how many calls still can be done with this IP until new calls will be rejected. See X-RateLimit-Remaining
-     * header of GitHub api response.
-     *
-     * @return
-     */
-    public Integer apiCallsLeft() {
-        throw new UnsupportedOperationException();
-    }
-
-    public String createSession() {
-        throw new UnsupportedOperationException();
     }
 }

@@ -15,7 +15,7 @@ public class ModelFactoryTest {
     @Test
     public void testSerializingOfRepos() {
         JsonArray repoPayload = new JsonParser().parse(repoPayload_firstTwoRepos()).getAsJsonArray();
-        List<Repository> repositories = ModelFactory.getReposWithoutLanguages(repoPayload);
+        List<Repository> repositories = ModelFactory.parseRepos(repoPayload);
 
         assertThat(repositories).hasSize(2);
         assertThat(repositories.get(0).getId()).isEqualTo("1");
