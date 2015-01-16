@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.List;
 
 public class Repository {
-
     private final String id;
     private String languageURL;
     private List<Language> languages;

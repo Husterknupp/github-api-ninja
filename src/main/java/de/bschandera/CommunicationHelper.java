@@ -2,6 +2,7 @@ package de.bschandera;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import net.sf.qualitycheck.Check;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -13,6 +14,11 @@ import org.scribe.oauth.OAuthService;
 import java.io.IOException;
 import java.util.Scanner;
 
+/**
+ * <p>Helps you to do http calls. Does not know anything about GitHub besides the OAuth workflow.</p>
+ * <p>Also this class does is providing oAuth mechanisms to sign api calls. This makes it possible to increase
+ * the maximal number of calls drastically.</p>
+ */
 public class CommunicationHelper {
     private static final JsonParser PARSER = new JsonParser();
     private static final Token EMPTY_TOKEN = null;
@@ -22,7 +28,7 @@ public class CommunicationHelper {
     private String code;
     private Token token;
     private final HttpClient httpClient;
-    private final int maxApiCalls;
+    private final int maxApiCalls; // Todo generate automatically regarding ??-header
     private int doneApiCalls;
 
     public CommunicationHelper(int maxApiCalls) {
@@ -30,15 +36,22 @@ public class CommunicationHelper {
     }
 
     public CommunicationHelper(int maxApiCalls, HttpClient httpClient) {
+        Check.notNull(httpClient, "httpClient");
         this.maxApiCalls = maxApiCalls;
         this.doneApiCalls = 0;
         this.httpClient = httpClient;
     }
 
+    /**
+     * @return Number of api calls that can be done against the api.
+     */
     public int getMaxApiCalls() {
         return maxApiCalls;
     }
 
+    /**
+     * @return Number of api calls that are already done within this application run.
+     */
     public int getDoneApiCalls() {
         return doneApiCalls;
     }
@@ -51,6 +64,7 @@ public class CommunicationHelper {
      * @return
      */
     public JsonElement getResponseAsJson(String uri) {
+        Check.notNull(uri, "uri");
         doneApiCalls++;
         OAuthRequest request = getoAuthSignedRequest(uri);
         Response response = request.send();
@@ -77,16 +91,15 @@ public class CommunicationHelper {
     }
 
     private static String readApiKey() {
-        System.out.println("API key... we need your API key:");
+        System.out.println("API key - we need your API key. >>");
         return new Scanner(System.in).nextLine();
     }
 
     private static String readApiSecret() {
-        System.out.println("And - tadaaa - your API secret:");
+        System.out.println("And your - API secret - surprise! >>");
         return new Scanner(System.in).nextLine();
     }
 
-    // TODO document
     private static OAuthService getoAuthService(String apiKey, String apiSecret) {
         // Replace these with your own api key and secret (found on https://github.com/settings/applications/155857)
         return new ServiceBuilder()
@@ -98,7 +111,6 @@ public class CommunicationHelper {
                 .build();
     }
 
-    // TODO document
     private String generateAuthCode() {
         // TODO authorize automatically (required code is provided when calling the authorizationUrl)
         String authorizationUrl = oAuthService.getAuthorizationUrl(EMPTY_TOKEN);
@@ -111,7 +123,6 @@ public class CommunicationHelper {
         return new Scanner(System.in).nextLine();
     }
 
-    // TODO document
     private static Token generateToken(OAuthService service, final String code) {
         // I followed that link and found the code in the redirect url https://github.com/login/oauth/authorize?code=...
         Verifier verifier = new Verifier(code);
@@ -119,13 +130,23 @@ public class CommunicationHelper {
         return service.getAccessToken(EMPTY_TOKEN, verifier);
     }
 
-    // TODO document
-    public boolean allApiCallsAreComsumed() {
+    /**
+     * @return {@code true} if and only if the same number of api calls is made as is allowed by {@linkplain #getMaxApiCalls()}.
+     */
+    public boolean allApiCallsAreConsumed() {
         return getDoneApiCalls() == getMaxApiCalls();
     }
 
-    // TODO document (e.g., does a GET)
+    /**
+     * <p>Use a http client to execute a {@linkplain org.apache.http.client.methods.HttpGet} towards the given url.</p>
+     * <p>In case an {@linkplain java.io.IOException} occurs (e.g., if you are not connected to the internet) the result
+     * will be false. The exception's stack trace can be found in {@code java.lang.System.out}.</p>
+     *
+     * @param url
+     * @return true if and only if the url can be requested and the response status code is 200.
+     */
     public boolean urlIsAvailable(String url) {
+        Check.notNull(url, "url");
         try {
             HttpResponse statusResponse = httpClient.execute(new HttpGet(url));
             doneApiCalls++;

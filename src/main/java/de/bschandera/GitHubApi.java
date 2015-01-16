@@ -5,19 +5,24 @@ import net.sf.qualitycheck.Check;
 import java.math.BigDecimal;
 import java.util.*;
 
-import static de.bschandera.ModelFactory.getLanguages;
 import static de.bschandera.ModelFactory.getReposWithoutLanguages;
+import static de.bschandera.ModelFactory.parseLanguages;
 
 /**
- * Provide a convenient way to handle the public GitHub REST API v3. Hide away HTTP calls and also the necessary JSON
- * handling. Make data accessible within good looking Java types instead.
+ * <p>Provide a convenient way to handle the public GitHub REST api v3. Hide away HTTP calls and also the necessary JSON
+ * handling. Make data accessible within good looking Java types instead.</p>
+ * <p>Since GitHub only allows a certain number of api calls per IP per hour this class also
+ * takes care that this number is respected and results are not messed up by GitHub error messages.</p>
  */
 public class GitHubApi {
     private static final String URL_API_GITHUB_COM = "https://api.github.com";
-    private static final String URL_REPOSITORIES = "/repositories";
+    private static final String URL_REPOSITORIES = URL_API_GITHUB_COM + "/repositories";
 
     private CommunicationHelper communicationHelper;
 
+    /**
+     * @param maxApiCalls must not be a negative number.
+     */
     public GitHubApi(Integer maxApiCalls) {
         Check.notNegative(maxApiCalls, "maxApiCalls");
         communicationHelper = new CommunicationHelper(maxApiCalls);
@@ -82,14 +87,14 @@ public class GitHubApi {
      */
     public List<Repository> getPublicRepositories() {
         List<Repository> reposWithoutLanguages = getReposWithoutLanguages(
-                // TODO make call easier (i.e., give it into this method as a parameter)
-                communicationHelper.getResponseAsJson(URL_API_GITHUB_COM + URL_REPOSITORIES).getAsJsonArray());
+                // TODO make call easier (i.e., give json response into this method as a parameter)
+                communicationHelper.getResponseAsJson(URL_REPOSITORIES).getAsJsonArray());
         List<Repository> result = new ArrayList<>();
         for (Repository repo : reposWithoutLanguages) {
-            if (communicationHelper.allApiCallsAreComsumed()) {
+            if (communicationHelper.allApiCallsAreConsumed()) {
                 break;
             }
-            List<Language> languages = getLanguages(communicationHelper.getResponseAsJson(repo.getLanguagesURL()).getAsJsonObject());
+            List<Language> languages = parseLanguages(communicationHelper.getResponseAsJson(repo.getLanguagesURL()).getAsJsonObject());
             repo.setLanguages(languages);
             result.add(repo);
         }
@@ -97,8 +102,7 @@ public class GitHubApi {
     }
 
     /**
-     * @return Status of {@linkplain #URL_API_GITHUB_COM} == 200 ?
-     * @throws java.lang.RuntimeException when something with the HTTP connection is bad.
+     * @return true if and only if response status of GitHub api == 200
      */
     public boolean isAvailable() {
         return communicationHelper.urlIsAvailable(URL_API_GITHUB_COM);

@@ -1,8 +1,10 @@
 package de.bschandera;
 
+import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.sf.qualitycheck.Check;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -18,14 +20,43 @@ public class ModelFactory {
     private static final String JSON_MEMBER_LANGUAGES_URL = "languages_url";
 
     /**
+     * Parses a payload that holds multiple languages into regarding Language objects. See the example payload.
+     * <p>{
+     * "Scala": 1222,
+     * "Java": 305360
+     * }
+     * </p>
+     *
+     * @param languagesPayload
+     * @return Immutable list of {@linkplain de.bschandera.Language}.
+     */
+    public static List<Language> parseLanguages(JsonObject languagesPayload) {
+        Check.notNull(languagesPayload, "languagesPayload");
+        ImmutableList.Builder result = new ImmutableList.Builder();
+        for (Map.Entry<String, JsonElement> languageOccurrence : languagesPayload.entrySet()) {
+            final String name = languageOccurrence.getKey();
+            final BigDecimal bytes = BigDecimal.valueOf(languageOccurrence.getValue().getAsLong());
+            result.add(new Language(name, bytes));
+        }
+        return result.build();
+    }
+
+    /**
      * {@linkplain de.bschandera.Repository}s that only have their name and their language id. No languages are contended, yet.
-     * Please use {@linkplain #getLanguages(com.google.gson.JsonObject)} for this task.
+     * Please use {@linkplain #parseLanguages(com.google.gson.JsonObject)} for this task. See example payload.
+     * <p>{
+     * "id": 27962218,
+     * "name": "github-api-ninja",
+     * ...
+     * "languages_url": "https://api.github.com/repos/Husterknupp/github-api-ninja/languages",
+     * ...}</p>
      *
      * @param allReposPayload
      * @return
      */
     public static List<Repository> getReposWithoutLanguages(JsonArray allReposPayload) {
         // TODO accept plain String
+        Check.notNull(allReposPayload, "allReposPayload");
         List<Repository> result = new ArrayList<>();
         for (JsonElement repo : allReposPayload.getAsJsonArray()) {
             result.add(new Repository(extractId(repo), extractLanguageURL(repo)));
@@ -33,30 +64,12 @@ public class ModelFactory {
         return result;
     }
 
-    /**
-     * Extract id of a specific repo.
-     *
-     * @param repoAsJson
-     * @return
-     */
     private static String extractId(JsonElement repoAsJson) {
         return repoAsJson.getAsJsonObject().getAsJsonPrimitive(JSON_MEMBER_ID).getAsString();
     }
 
-    // TODO document
     private static String extractLanguageURL(JsonElement repoAsJson) {
         return repoAsJson.getAsJsonObject().getAsJsonPrimitive(JSON_MEMBER_LANGUAGES_URL).getAsString();
-    }
-
-    // TODO document
-    public static List<Language> getLanguages(JsonObject languagesPayload) {
-        List<Language> result = new ArrayList<>();
-        for (Map.Entry<String, JsonElement> languageOccurrence : languagesPayload.entrySet()) {
-            final String name = languageOccurrence.getKey();
-            final BigDecimal bytes = BigDecimal.valueOf(languageOccurrence.getValue().getAsLong());
-            result.add(new Language(name, bytes));
-        }
-        return result;
     }
 
 }

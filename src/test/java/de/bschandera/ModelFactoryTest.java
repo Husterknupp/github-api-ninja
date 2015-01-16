@@ -29,7 +29,7 @@ public class ModelFactoryTest {
     @Test
     public void testGetLanguages() {
         JsonObject languagesPayload = new JsonParser().parse(languagePayload()).getAsJsonObject();
-        List<Language> languages = ModelFactory.getLanguages(languagesPayload);
+        List<Language> languages = ModelFactory.parseLanguages(languagesPayload);
 
         assertThat(languages).hasSize(2);
         assertThat(languages.get(0).getName()).isEqualTo("JavaScript");

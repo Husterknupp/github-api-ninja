@@ -5,10 +5,13 @@ import net.sf.qualitycheck.Check;
 import java.math.BigDecimal;
 
 public class Language {
-
     private final String name;
     private final BigDecimal bytes;
 
+    /**
+     * @param name  must not be an empty String.
+     * @param bytes must not be a negative BigDecimal.
+     */
     public Language(String name, BigDecimal bytes) {
         Check.notEmpty(name, "name");
         Check.notNegative(bytes.longValue(), "bytes");
@@ -21,7 +24,7 @@ public class Language {
     }
 
     /**
-     * Number of bytes that are written in this specific language for a given repository.
+     * Number of bytes that are written in this specific language. This number only makes sense in a context of a repository.
      *
      * @return
      */
@@ -46,6 +49,11 @@ public class Language {
         return true;
     }
 
+    /**
+     * Takes into account name and bytes.
+     *
+     * @return
+     */
     @Override
     public int hashCode() {
         int result = name.hashCode();
@@ -53,6 +61,9 @@ public class Language {
         return result;
     }
 
+    /**
+     * @return something like {@code Language{name='Java', bytes=12345}}
+     */
     @Override
     public String toString() {
         return "Language{" +
