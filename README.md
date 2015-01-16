@@ -37,20 +37,21 @@ Makefile: 0.021000 %
 
 1. `mvn clean package`
 2. `java -jar target/github-api-ninja-1.0-SNAPSHOT-jar-with-dependencies.jar`
-3. `java -jar target/github-api-ninja-1.0-SNAPSHOT-jar-with-dependencies.jar 50` for statistics on the first 50 repos.
 
 **Extensions**
 
-- Provide way to log in via the GitHub API, i.e., receive more than 5 repo statistics. 
-  - See developer.github.com/v3/oauth_authorizations
-  - For OAuth, use this library: https://github.com/Kobee1203/scribe-java
-- Build a RESTful HTTP interface on top. E.g., `GET /statistics`, `GET /statistics/language`, ... seem reasonable.
-- On top of that a simple and focused GUI/Frontend would be cool. Enter a language name and receive the result in a 
-beautifully nice way. 
+- Mock HTTP connection: http://wiremock.org/
 - Persist the data a) to build some cache and avoid GitHub overload and b) to play around a little with a persistence
  unit.
 - Make a standalone webserver application. Use Spring Boot, for instance. Is [JHipster](https://jhipster.github.io) an option for this? Probably not because I dont know Angular...
-- Mock HTTP connection: http://wiremock.org/
+- Build a RESTful HTTP interface on top. E.g., `GET /statistics`, `GET /statistics/language`, ... seem reasonable.
+- On top of that a simple and focused GUI/Frontend would be cool. Enter a language name and receive the result in a
+beautifully nice way.
+
+**Done**
+- Provide way to log in via the GitHub API, i.e., receive more than 5 repo statistics.
+  - See developer.github.com/v3/oauth_authorizations
+  - For OAuth, use this library: https://github.com/Kobee1203/scribe-java
 
 **More new stuff**
 
