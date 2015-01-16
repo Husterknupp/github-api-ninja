@@ -10,23 +10,22 @@ public class ApiNinja {
 
     // TODO be less restrictive: broken api calls make the ninja fail :(
     public static void main(String[] args) {
-
-        GitHubApi gitHub;
+        int maxApiCalls;
         if (args.length == 1) {
-            gitHub = new GitHubApi(Integer.parseInt(args[0]));
-            System.out.println("I'll do at most " + Integer.parseInt(args[0]) + " api calls (" +
-                    (Integer.parseInt(args[0]) - 2) + " repos). Promise.");
+            maxApiCalls = Integer.parseInt(args[0]);
+            System.out.println("I'll do at most " + maxApiCalls + " api calls (" + (maxApiCalls - 2) + " repos). Promise.");
         } else {
-            gitHub = new GitHubApi(12);
+            maxApiCalls = 12;
             System.out.println("I'll do at most 12 api calls (10 repos). Promise.");
         }
 
-        if (!gitHub.isAvailable()) {
-            System.out.println("I cannot reach GitHub... Please try again later");
-            return;
-        } else {
+        GitHubApi gitHub = new GitHubApi(maxApiCalls);
+        if (gitHub.isAvailable()) {
             System.out.println("GitHub's status is all fine. Let the show begin.");
             System.out.println();
+        } else {
+            System.out.println("I cannot reach GitHub... Please try again later");
+            return;
         }
 
         List<Language> languagesOfPublicRepos = gitHub.aggregateLanguagesOfPublicRepos();

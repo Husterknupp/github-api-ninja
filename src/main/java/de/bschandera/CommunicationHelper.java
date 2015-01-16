@@ -18,9 +18,9 @@ public class CommunicationHelper {
     private static final Token EMPTY_TOKEN = null;
     private static final String CALLBACK_URL = "https://github.com/login/oauth/authorize";
 
-    private final OAuthService oAuthService;
-    private final String code;
-    private final Token token;
+    private OAuthService oAuthService;
+    private String code;
+    private Token token;
     private final HttpClient httpClient;
     private final int maxApiCalls;
     private int doneApiCalls;
@@ -33,9 +33,6 @@ public class CommunicationHelper {
         this.maxApiCalls = maxApiCalls;
         this.doneApiCalls = 0;
         this.httpClient = httpClient;
-        oAuthService = getoAuthService(readApiKey(), readApiSecret());
-        code = generateAuthCode();
-        token = generateToken(oAuthService, code);
     }
 
     public int getMaxApiCalls() {
@@ -44,16 +41,6 @@ public class CommunicationHelper {
 
     public int getDoneApiCalls() {
         return doneApiCalls;
-    }
-
-    private static String readApiKey() {
-        System.out.println("API key... we need your API key:");
-        return new Scanner(System.in).nextLine();
-    }
-
-    private static String readApiSecret() {
-        System.out.println("And - tadaaa - your API secret:");
-        return new Scanner(System.in).nextLine();
     }
 
     /**
@@ -65,10 +52,38 @@ public class CommunicationHelper {
      */
     public JsonElement getResponseAsJson(String uri) {
         doneApiCalls++;
-        OAuthRequest request = new OAuthRequest(Verb.GET, uri);
-        oAuthService.signRequest(token, request);
+        OAuthRequest request = getoAuthSignedRequest(uri);
         Response response = request.send();
         return PARSER.parse(response.getBody());
+    }
+
+    private OAuthRequest getoAuthSignedRequest(String uri) {
+        if (!initialized()) {
+            init();
+        }
+        OAuthRequest request = new OAuthRequest(Verb.GET, uri);
+        oAuthService.signRequest(token, request);
+        return request;
+    }
+
+    private boolean initialized() {
+        return oAuthService != null && code != null && token != null;
+    }
+
+    private void init() {
+        oAuthService = getoAuthService(readApiKey(), readApiSecret());
+        code = generateAuthCode();
+        token = generateToken(oAuthService, code);
+    }
+
+    private static String readApiKey() {
+        System.out.println("API key... we need your API key:");
+        return new Scanner(System.in).nextLine();
+    }
+
+    private static String readApiSecret() {
+        System.out.println("And - tadaaa - your API secret:");
+        return new Scanner(System.in).nextLine();
     }
 
     // TODO document
@@ -109,7 +124,7 @@ public class CommunicationHelper {
         return getDoneApiCalls() == getMaxApiCalls();
     }
 
-    // TODO document (does a GET)
+    // TODO document (e.g., does a GET)
     public boolean urlIsAvailable(String url) {
         try {
             HttpResponse statusResponse = httpClient.execute(new HttpGet(url));
