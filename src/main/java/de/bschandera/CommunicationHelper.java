@@ -121,7 +121,6 @@ public class CommunicationHelper {
     }
 
     private String generateAuthCode() {
-        // TODO authorize automatically (required code is provided when calling the authorizationUrl)
         String authorizationUrl = oAuthService.getAuthorizationUrl(EMPTY_TOKEN);
         System.out.println("Got the Authorization URL!");
         System.out.println("Now go and authorize Scribe here:");
@@ -160,15 +159,23 @@ public class CommunicationHelper {
     public boolean urlIsAvailable(String url) {
         Check.notNull(url, "url");
         Check.stateIsTrue(hasStillApiCallsLeft(), "Wanted to call the API but no rate limit remaining anymore.");
+        HttpResponse response = callUrlWithoutoAuth(url);
+        return response.getStatusLine().getStatusCode() == 200;
+    }
+
+    /**
+     * @param url
+     * @return
+     * @throws java.io.IOException as RuntimeException if e.g., this machine is not connected to the internet.
+     */
+    private HttpResponse callUrlWithoutoAuth(String url) {
         try {
             HttpResponse response = httpClient.execute(new HttpGet(url));
             adjustRateRemaining(response);
-            return response.getStatusLine().getStatusCode() == 200;
+            return response;
         } catch (IOException e) {
             System.out.println("I'm facing some connection problems. Are you connected to this internet thingy?");
-            System.out.println(e);
-            System.out.println();
-            return false;
+            throw new RuntimeException(e);
         }
     }
 }
