@@ -1,5 +1,6 @@
 package de.bschandera;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -52,16 +53,19 @@ public class CommunicationHelper {
      * @return
      */
     public Optional<JsonElement> getResponseAsJson(String uri) {
-        Check.notNull(uri, "uri");
+        OAuthRequest request = getoAuthSignedRequest(uri);
+        return getResponseAsJson(request.send());
+    }
+
+    @VisibleForTesting
+    Optional<JsonElement> getResponseAsJson(Response response) {
         Check.stateIsTrue(hasStillApiCallsLeft(), "Wanted to call the API but no rate limit remaining anymore.");
 
-        OAuthRequest request = getoAuthSignedRequest(uri);
-        Response response = request.send();
-        adjustRateRemaining(response);
         if (response.isSuccessful()) {
+            adjustRateRemaining(response);
             return Optional.of(PARSER.parse(response.getBody()));
         } else {
-            System.out.println(uri + " was called");
+            System.out.println("Request call was not successful.");
             System.out.println(response.getCode() + " status code");
             System.out.println("Body:\n" + response.getBody());
             System.out.println();
