@@ -57,22 +57,7 @@ public class CommunicationHelper {
         return getResponseAsJson(request.send());
     }
 
-    @VisibleForTesting
-    Optional<JsonElement> getResponseAsJson(Response response) {
-        Check.stateIsTrue(hasStillApiCallsLeft(), "Wanted to call the API but no rate limit remaining anymore.");
-
-        if (response.isSuccessful()) {
-            adjustRateRemaining(response);
-            return Optional.of(PARSER.parse(response.getBody()));
-        } else {
-            System.out.println("Request call was not successful.");
-            System.out.println(response.getCode() + " status code");
-            System.out.println("Body:\n" + response.getBody());
-            System.out.println();
-            return Optional.absent();
-        }
-    }
-
+    // TODO extract all oAuth stuff OAuthHelper
     private OAuthRequest getoAuthSignedRequest(String uri) {
         if (!initialized()) {
             init();
@@ -90,15 +75,6 @@ public class CommunicationHelper {
         oAuthService = getoAuthService(readApiKey(), readApiSecret());
         code = generateAuthCode();
         token = generateToken(oAuthService, code);
-    }
-
-    private void adjustRateRemaining(Object response) {
-        if (response instanceof Response) {
-            apiCallsRemaining = Integer.parseInt(((Response) response).getHeader(HEADER_X_RATE_REMAINING));
-        } else if (response instanceof HttpResponse) {
-            final Header rateLimitHeader = ((HttpResponse) response).getHeaders(HEADER_X_RATE_REMAINING)[0];
-            apiCallsRemaining = Integer.parseInt(rateLimitHeader.getValue());
-        }
     }
 
     private static String readApiKey() {
@@ -142,6 +118,31 @@ public class CommunicationHelper {
         Verifier verifier = new Verifier(code);
         // Trade the Request Token and Verfier for the Access Token
         return service.getAccessToken(EMPTY_TOKEN, verifier);
+    }
+
+    @VisibleForTesting
+    Optional<JsonElement> getResponseAsJson(Response response) {
+        Check.stateIsTrue(hasStillApiCallsLeft(), "Wanted to call the API but no rate limit remaining anymore.");
+
+        if (response.isSuccessful()) {
+            adjustRateRemaining(response);
+            return Optional.of(PARSER.parse(response.getBody()));
+        } else {
+            System.out.println("Request call was not successful.");
+            System.out.println(response.getCode() + " status code");
+            System.out.println("Body:\n" + response.getBody());
+            System.out.println();
+            return Optional.absent();
+        }
+    }
+
+    private void adjustRateRemaining(Object response) {
+        if (response instanceof Response) {
+            apiCallsRemaining = Integer.parseInt(((Response) response).getHeader(HEADER_X_RATE_REMAINING));
+        } else if (response instanceof HttpResponse) {
+            final Header rateLimitHeader = ((HttpResponse) response).getHeaders(HEADER_X_RATE_REMAINING)[0];
+            apiCallsRemaining = Integer.parseInt(rateLimitHeader.getValue());
+        }
     }
 
     /**
