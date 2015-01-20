@@ -32,7 +32,7 @@ public class ModelFactory {
      */
     public static List<Language> parseLanguages(JsonObject languagesPayload) {
         Check.notNull(languagesPayload, "languagesPayload");
-        ImmutableList.Builder result = new ImmutableList.Builder();
+        ImmutableList.Builder<Language> result = new ImmutableList.Builder<>();
         for (Map.Entry<String, JsonElement> languageOccurrence : languagesPayload.entrySet()) {
             final String name = languageOccurrence.getKey();
             final BigDecimal bytes = BigDecimal.valueOf(languageOccurrence.getValue().getAsLong());
