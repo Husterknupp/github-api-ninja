@@ -1,5 +1,6 @@
 package de.bschandera;
 
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.scribe.model.OAuthRequest;
@@ -32,6 +33,20 @@ public class CommunicationHelperTest {
         assertThat(communicationHelper.getResponseAsJson(response).isPresent()).isFalse();
     }
 
+    @Test
+    public void testHasStillApiCallsLeft() throws Exception {
+        CommunicationHelper communicationHelper = new CommunicationHelper(10, HttpClientBuilder.create().build());
+        assertThat(communicationHelper.hasStillApiCallsLeft()).isTrue();
+
+        communicationHelper = new CommunicationHelper(0, HttpClientBuilder.create().build());
+        assertThat(communicationHelper.hasStillApiCallsLeft()).isFalse();
+    }
+
+    @Test
+    public void testUrlIsAvailable() throws Exception {
+
+    }
+
     @Ignore
     @Test
     public void testGetResponseAsJson_failedMocking() {
@@ -40,15 +55,5 @@ public class CommunicationHelperTest {
         /* TODO does not work: request.send(); */
         stub(request.send()).toReturn(response);
         System.out.println(request.send());
-    }
-
-    @Test
-    public void testHasStillApiCallsLeft() throws Exception {
-
-    }
-
-    @Test
-    public void testUrlIsAvailable() throws Exception {
-
     }
 }
