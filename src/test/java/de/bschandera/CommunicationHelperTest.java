@@ -1,15 +1,24 @@
 package de.bschandera;
 
+import org.apache.http.Header;
+import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.scribe.model.OAuthRequest;
 import org.scribe.model.Response;
 
+import java.io.IOException;
+
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 public class CommunicationHelperTest {
+
+    public static final int LIMIT_ARBITRARY = 1234;
 
     @Test
     public void testGetResponseAsJson() throws Exception {
@@ -43,8 +52,38 @@ public class CommunicationHelperTest {
     }
 
     @Test
-    public void testUrlIsAvailable() throws Exception {
+    public void testUrlIsAvailable() throws IOException {
+        final HttpClient httpClient = mock(HttpClient.class);
 
+        final HttpResponse response = mock(HttpResponse.class);
+        when(httpClient.execute(any(HttpGet.class))).thenReturn(response);
+        final StatusLine statusLine = mock(StatusLine.class);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(response.getStatusLine()).thenReturn(statusLine);
+
+        final Header rateHeader = mock(Header.class);
+        when(rateHeader.getValue()).thenReturn("0");
+        Header[] headers = new Header[1];
+        headers[0] = rateHeader;
+        when(response.getHeaders("X-RateLimit-Remaining")).thenReturn(headers);
+
+        CommunicationHelper communicationHelper = new CommunicationHelper(LIMIT_ARBITRARY, httpClient);
+        assertThat(communicationHelper.urlIsAvailable("http://url.com")).isTrue(); // TODO this should be a separate test case
+        assertThat(communicationHelper.hasStillApiCallsLeft()).isFalse();
+    }
+
+    @Test
+    public void testUrlIsNotAvailable() throws IOException {
+        // TODO implement this test case
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testUrlIsAvailable_brokenConnection() throws IOException {
+        final HttpClient httpClient = mock(HttpClient.class);
+        when(httpClient.execute(any(HttpGet.class))).thenThrow(new IOException());
+
+        CommunicationHelper communicationHelper = new CommunicationHelper(LIMIT_ARBITRARY, httpClient);
+        communicationHelper.urlIsAvailable("http://url.com");
     }
 
     @Ignore
