@@ -57,15 +57,16 @@ public class CommunicationHelperTest {
 
         final HttpResponse response = mock(HttpResponse.class);
         when(httpClient.execute(any(HttpGet.class))).thenReturn(response);
-        final StatusLine statusLine = mock(StatusLine.class);
-        when(statusLine.getStatusCode()).thenReturn(200);
-        when(response.getStatusLine()).thenReturn(statusLine);
 
         final Header rateHeader = mock(Header.class);
         when(rateHeader.getValue()).thenReturn("0");
         Header[] headers = new Header[1];
         headers[0] = rateHeader;
         when(response.getHeaders("X-RateLimit-Remaining")).thenReturn(headers);
+
+        final StatusLine statusLine = mock(StatusLine.class);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(response.getStatusLine()).thenReturn(statusLine);
 
         CommunicationHelper communicationHelper = new CommunicationHelper(LIMIT_ARBITRARY, httpClient);
         assertThat(communicationHelper.urlIsAvailable("http://url.com")).isTrue(); // TODO this should be a separate test case
@@ -74,7 +75,28 @@ public class CommunicationHelperTest {
 
     @Test
     public void testUrlIsNotAvailable() throws IOException {
-        // TODO implement this test case
+        /*
+        TEST CASE IRRELEVANT INFORMATION
+         */
+        final HttpClient httpClient = mock(HttpClient.class);
+        final HttpResponse response = mock(HttpResponse.class);
+        when(httpClient.execute(any(HttpGet.class))).thenReturn(response);
+
+        final Header rateHeader = mock(Header.class);
+        when(rateHeader.getValue()).thenReturn("0");
+        Header[] headers = new Header[1];
+        headers[0] = rateHeader;
+        when(response.getHeaders("X-RateLimit-Remaining")).thenReturn(headers);
+
+        /*
+        TEST CASE RELEVANT INFORMATION
+         */
+        final StatusLine statusLine = mock(StatusLine.class);
+        when(statusLine.getStatusCode()).thenReturn(500);
+        when(response.getStatusLine()).thenReturn(statusLine);
+
+        CommunicationHelper communicationHelper = new CommunicationHelper(LIMIT_ARBITRARY, httpClient);
+        assertThat(communicationHelper.urlIsAvailable("http://url.com")).isFalse();
     }
 
     @Test(expected = RuntimeException.class)
