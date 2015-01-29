@@ -1,5 +1,8 @@
-package de.bschandera;
+package de.bschandera.githubapininja;
 
+import de.bschandera.githubapininja.GitHubApi;
+import de.bschandera.githubapininja.Language;
+import de.bschandera.githubapininja.Repository;
 import org.junit.Test;
 
 import java.math.BigDecimal;

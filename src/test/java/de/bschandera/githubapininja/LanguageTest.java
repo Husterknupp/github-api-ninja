@@ -1,5 +1,6 @@
-package de.bschandera;
+package de.bschandera.githubapininja;
 
+import de.bschandera.githubapininja.Language;
 import net.sf.qualitycheck.exception.IllegalEmptyArgumentException;
 import net.sf.qualitycheck.exception.IllegalNegativeArgumentException;
 import org.junit.Test;

@@ -1,8 +1,11 @@
-package de.bschandera;
+package de.bschandera.githubapininja;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import de.bschandera.githubapininja.Language;
+import de.bschandera.githubapininja.ModelFactory;
+import de.bschandera.githubapininja.Repository;
 import org.junit.Test;
 
 import java.math.BigDecimal;

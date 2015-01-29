@@ -1,4 +1,4 @@
-package de.bschandera;
+package de.bschandera.githubapininja;
 
 import org.scribe.builder.api.DefaultApi20;
 import org.scribe.model.OAuthConfig;

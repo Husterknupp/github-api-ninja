@@ -1,5 +1,6 @@
-package de.bschandera;
+package de.bschandera.githubapininja;
 
+import de.bschandera.githubapininja.CommunicationHelper;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;

@@ -1,4 +1,4 @@
-package de.bschandera;
+package de.bschandera.githubapininja;
 
 import com.google.common.base.Optional;
 import com.google.gson.JsonElement;
@@ -24,7 +24,7 @@ public class GitHubApi {
     }
 
     /**
-     * Aggregated view on public repositories and their regarding languages. List every {@linkplain de.bschandera.Language}
+     * Aggregated view on public repositories and their regarding languages. List every {@linkplain Language}
      * only once. The contained number of bytes reflects the sum of all bytes that are written in this specific
      * language, regarding all repos of {@linkplain #getPublicRepositories()}.
      *
@@ -35,7 +35,7 @@ public class GitHubApi {
     }
 
     /**
-     * Aggregated view on the given repositories and their languages. List every {@linkplain de.bschandera.Language}
+     * Aggregated view on the given repositories and their languages. List every {@linkplain Language}
      * only once. The contained number of bytes reflects the sum of all bytes that are written in this specific
      * language, regarding all given repos.
      *
@@ -75,7 +75,7 @@ public class GitHubApi {
     }
 
     /**
-     * Ask GitHub API for public repositories. A {@linkplain de.bschandera.Repository} is less detailed view on
+     * Ask GitHub API for public repositories. A {@linkplain Repository} is less detailed view on
      * the data provided by GitHub. Given an api call limit, this method only returns at most limit - 1 repos.
      *
      * @return

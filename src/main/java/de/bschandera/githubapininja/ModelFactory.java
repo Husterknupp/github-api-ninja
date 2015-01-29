@@ -1,4 +1,4 @@
-package de.bschandera;
+package de.bschandera.githubapininja;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gson.JsonArray;
@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Provides methods to make model objects, e.g., {@linkplain de.bschandera.Language}, {@linkplain de.bschandera.Repository}
+ * Provides methods to make model objects, e.g., {@linkplain Language}, {@linkplain Repository}
  * out of JSON objects.
  */
 public class ModelFactory {
@@ -28,7 +28,7 @@ public class ModelFactory {
      * </p>
      *
      * @param languagesPayload
-     * @return Immutable list of {@linkplain de.bschandera.Language}.
+     * @return Immutable list of {@linkplain Language}.
      */
     public static List<Language> parseLanguages(JsonObject languagesPayload) {
         Check.notNull(languagesPayload, "languagesPayload");
@@ -42,7 +42,7 @@ public class ModelFactory {
     }
 
     /**
-     * {@linkplain de.bschandera.Repository}s that only have their name and their language id. No languages are contended, yet.
+     * {@linkplain Repository}s that only have their name and their language id. No languages are contended, yet.
      * Please use {@linkplain #parseLanguages(com.google.gson.JsonObject)} for this task. See example payload.
      * <p>{
      * "id": 27962218,

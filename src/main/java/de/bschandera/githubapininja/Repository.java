@@ -1,4 +1,4 @@
-package de.bschandera;
+package de.bschandera.githubapininja;
 
 import com.google.common.collect.Lists;
 import net.sf.qualitycheck.Check;

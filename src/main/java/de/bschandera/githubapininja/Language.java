@@ -1,4 +1,4 @@
-package de.bschandera;
+package de.bschandera.githubapininja;
 
 import net.sf.qualitycheck.Check;
 

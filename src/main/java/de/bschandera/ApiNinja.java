@@ -1,5 +1,8 @@
 package de.bschandera;
 
+import de.bschandera.githubapininja.GitHubApi;
+import de.bschandera.githubapininja.Language;
+
 import java.math.BigDecimal;
 import java.util.List;
 
