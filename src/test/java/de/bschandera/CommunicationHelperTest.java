@@ -108,6 +108,27 @@ public class CommunicationHelperTest {
         communicationHelper.urlIsAvailable("http://url.com");
     }
 
+    @Test
+    public void testUrlIsAvailable_readsHeaderRateLimit() throws IOException {
+        final HttpClient httpClient = mock(HttpClient.class);
+        final HttpResponse response = mock(HttpResponse.class);
+        when(httpClient.execute(any(HttpGet.class))).thenReturn(response);
+
+        final Header rateHeader = mock(Header.class);
+        when(rateHeader.getValue()).thenReturn("0");
+        Header[] headers = new Header[1];
+        headers[0] = rateHeader;
+        when(response.getHeaders("X-RateLimit-Remaining")).thenReturn(headers);
+
+        final StatusLine statusLine = mock(StatusLine.class);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(response.getStatusLine()).thenReturn(statusLine);
+
+        CommunicationHelper communicationHelper = new CommunicationHelper(LIMIT_ARBITRARY, httpClient);
+        communicationHelper.urlIsAvailable("http://url.com");
+        assertThat(communicationHelper.hasStillApiCallsLeft()).isFalse();
+    }
+
     @Ignore
     @Test
     public void testGetResponseAsJson_failedMocking() {
