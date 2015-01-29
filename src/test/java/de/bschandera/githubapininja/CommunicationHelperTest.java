@@ -1,6 +1,5 @@
 package de.bschandera.githubapininja;
 
-import de.bschandera.githubapininja.CommunicationHelper;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
@@ -30,7 +29,7 @@ public class CommunicationHelperTest {
                         "  \"Body\": 0123456789\n" +
                         "}\n");
 
-        assertThat(communicationHelper.getResponseAsJson(response).isPresent()).isTrue();
+        assertThat(communicationHelper.tryGetResponseAsJson(response).isPresent()).isTrue();
     }
 
     @Test
@@ -38,7 +37,7 @@ public class CommunicationHelperTest {
         CommunicationHelper communicationHelper = new CommunicationHelper();
         final Response response = mock(Response.class);
         when(response.isSuccessful()).thenReturn(false);
-        assertThat(communicationHelper.getResponseAsJson(response).isPresent()).isFalse();
+        assertThat(communicationHelper.tryGetResponseAsJson(response).isPresent()).isFalse();
     }
 
     @Test
