@@ -36,13 +36,13 @@ public class CommunicationHelper {
 
     public CommunicationHelper() {
         // if no X-RateLimit-Remaining header can be achieved, 50 should be enough
-        this(50, HttpClientBuilder.create().build());
+        this(HttpClientBuilder.create().build());
     }
 
-    public CommunicationHelper(int maxApiCalls, HttpClient httpClient) {
+    public CommunicationHelper(HttpClient httpClient) {
         Check.notNull(httpClient, "httpClient");
         this.httpClient = httpClient;
-        apiCallsRemaining = maxApiCalls;
+        apiCallsRemaining = 50; // default number for protected GitHub resources
     }
 
     /**

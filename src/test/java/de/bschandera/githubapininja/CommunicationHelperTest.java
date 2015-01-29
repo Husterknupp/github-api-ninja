@@ -19,8 +19,6 @@ import static org.mockito.Mockito.*;
 
 public class CommunicationHelperTest {
 
-    public static final int LIMIT_ARBITRARY = 1234;
-
     @Test
     public void testGetResponseAsJson() throws Exception {
         CommunicationHelper communicationHelper = new CommunicationHelper();
@@ -45,11 +43,11 @@ public class CommunicationHelperTest {
 
     @Test
     public void testHasStillApiCallsLeft() throws Exception {
-        CommunicationHelper communicationHelper = new CommunicationHelper(10, HttpClientBuilder.create().build());
+        CommunicationHelper communicationHelper = new CommunicationHelper(HttpClientBuilder.create().build());
         assertThat(communicationHelper.hasStillApiCallsLeft()).isTrue();
 
-        communicationHelper = new CommunicationHelper(0, HttpClientBuilder.create().build());
-        assertThat(communicationHelper.hasStillApiCallsLeft()).isFalse();
+        communicationHelper = new CommunicationHelper(HttpClientBuilder.create().build());
+        assertThat(communicationHelper.hasStillApiCallsLeft()).isTrue();
     }
 
     @Test
@@ -69,7 +67,7 @@ public class CommunicationHelperTest {
         when(statusLine.getStatusCode()).thenReturn(200);
         when(response.getStatusLine()).thenReturn(statusLine);
 
-        CommunicationHelper communicationHelper = new CommunicationHelper(LIMIT_ARBITRARY, httpClient);
+        CommunicationHelper communicationHelper = new CommunicationHelper(httpClient);
         assertThat(communicationHelper.urlIsAvailable("http://url.com")).isTrue(); // TODO this should be a separate test case
         assertThat(communicationHelper.hasStillApiCallsLeft()).isFalse();
     }
@@ -96,7 +94,7 @@ public class CommunicationHelperTest {
         when(statusLine.getStatusCode()).thenReturn(500);
         when(response.getStatusLine()).thenReturn(statusLine);
 
-        CommunicationHelper communicationHelper = new CommunicationHelper(LIMIT_ARBITRARY, httpClient);
+        CommunicationHelper communicationHelper = new CommunicationHelper(httpClient);
         assertThat(communicationHelper.urlIsAvailable("http://url.com")).isFalse();
     }
 
@@ -105,7 +103,7 @@ public class CommunicationHelperTest {
         final HttpClient httpClient = mock(HttpClient.class);
         when(httpClient.execute(any(HttpGet.class))).thenThrow(new IOException());
 
-        CommunicationHelper communicationHelper = new CommunicationHelper(LIMIT_ARBITRARY, httpClient);
+        CommunicationHelper communicationHelper = new CommunicationHelper(httpClient);
         communicationHelper.urlIsAvailable("http://url.com");
     }
 
@@ -125,7 +123,7 @@ public class CommunicationHelperTest {
         when(statusLine.getStatusCode()).thenReturn(200);
         when(response.getStatusLine()).thenReturn(statusLine);
 
-        CommunicationHelper communicationHelper = new CommunicationHelper(LIMIT_ARBITRARY, httpClient);
+        CommunicationHelper communicationHelper = new CommunicationHelper(httpClient);
         communicationHelper.urlIsAvailable("http://url.com");
         assertThat(communicationHelper.hasStillApiCallsLeft()).isFalse();
     }
