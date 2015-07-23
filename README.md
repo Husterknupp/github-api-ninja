@@ -35,8 +35,8 @@ Makefile: 0.021000 %
 
 **Run**
 
-1. `mvn clean package`
-2. `java -jar target/github-api-ninja-1.0-SNAPSHOT-jar-with-dependencies.jar`
+1. `gradle clean jar`
+2. `java -jar build/libs/github-api-ninja-1.0-SNAPSHOT.jar`
 
 **Extensions**
 
