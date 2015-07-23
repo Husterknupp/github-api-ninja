@@ -1,0 +1,44 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+group = 'de.bschandera'
+version = '1.0-SNAPSHOT'
+
+description = """github-api-ninja"""
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+repositories {
+    mavenCentral()
+}
+dependencies {
+    compile group: 'com.google.code.gson', name: 'gson', version: '1.7.2'
+    compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.3.6'
+    compile group: 'org.scribe', name: 'scribe', version: '1.3.0'
+    compile group: 'com.google.guava', name: 'guava', version: '15.0'
+    compile group: 'net.sf.qualitycheck', name: 'quality-check', version: '1.3'
+    compile group: 'org.mockito', name: 'mockito-all', version: '1.8.4'
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+    testCompile group: 'org.easytesting', name: 'fest-assert', version: '1.4'
+}
+
+jar {
+    // transform collection called 'compile', i.e. extract content of commons-lang3.jar
+    from configurations.compile.collect { zipTree it }
+    manifest.attributes 'Main-Class': 'de.bschandera.ApiNinja'
+}
+
+compileJava {
+    doFirst({
+        println '''
+    =====================
+      GITHUB API NINJA
+    =====================
+'''
+    })
+}
+
+test {
+    testLogging.exceptionFormat = "full"
+}
